@@ -141,6 +141,7 @@ export default function Home() {
                 />
               </div>
 
+<<<<<<< HEAD
               <div className="space-y-1.5">
                 <Label htmlFor="create-identifier" className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-accent" />
@@ -162,6 +163,11 @@ export default function Home() {
                     : 'Si lo dejás vacío, la mesa queda en modo efectivo.'}
                 </p>
               </div>
+=======
+            <Button type="submit" variant="secondary" size="lg" className="w-full" disabled={loading}>
+              {loading ? 'Creando…' : 'Crear mesa'}
+            </Button>
+>>>>>>> 1a0016c (fixing buttons and styles)
 
               <Button type="submit" size="lg" className="w-full" disabled={loading}>
                 {loading ? 'Creando…' : 'Crear mesa'}

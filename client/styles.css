@@ -72,7 +72,14 @@
 html, body, #root { height: 100%; min-height: 100%; }
 
 html {
-  background: var(--bg-0);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(52, 211, 153, 0.12), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 50% 110%, rgba(132, 204, 22, 0.08), transparent 65%),
+    linear-gradient(180deg, #062116 0%, #0a3a26 45%, #052316 100%),
+    var(--bg-0);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 body {
@@ -82,23 +89,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  background: var(--bg-0);
-}
-
-/* Fixed gradient backdrop — never gets cut off by content length */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(52, 211, 153, 0.12), transparent 65%),
-    radial-gradient(ellipse 60% 50% at 50% 110%, rgba(132, 204, 22, 0.08), transparent 65%),
-    linear-gradient(180deg, #062116 0%, #0a3a26 45%, #052316 100%);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
+  background: transparent;
 }
 
 button, input, select, textarea {

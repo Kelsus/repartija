@@ -15,7 +15,7 @@ export default function BrandMark({
       width={width}
       height={height}
       alt=""
-      className={`brandmark rounded-2xl ring-1 ring-white/10 ${className}`.trim()}
+      className={`brandmark ${className}`.trim()}
       aria-hidden="true"
     />
   );
