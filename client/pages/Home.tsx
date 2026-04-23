@@ -87,7 +87,7 @@ export default function Home() {
           onClick={() => setMode('create')}
         >
           <Sparkles className="h-4 w-4" />
-          Crear mesa
+          Nueva mesa
         </Button>
         <Button
           type="button"
