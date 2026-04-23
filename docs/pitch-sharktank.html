@@ -17,6 +17,7 @@
         --lime: #b8d856;
         --amber: #f59e0b;
         --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+        --font-scale: 1;
       }
 
       * {
@@ -39,6 +40,7 @@
         font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1.4;
         background: transparent;
+        overflow-x: hidden;
       }
 
       .deck-controls {
@@ -48,7 +50,7 @@
         z-index: 12;
         display: grid;
         gap: 10px;
-        width: min(320px, calc(100vw - 36px));
+        width: min(372px, calc(100vw - 36px));
         padding: 14px;
         border-radius: 18px;
         background: rgba(8, 28, 19, 0.82);
@@ -107,6 +109,10 @@
         flex-wrap: wrap;
       }
 
+      .control-row.tight {
+        justify-content: space-between;
+      }
+
       .control-row button {
         border: 0;
         border-radius: 999px;
@@ -130,6 +136,26 @@
 
       .control-row button.primary:hover {
         background: rgba(245, 158, 11, 0.26);
+      }
+
+      .control-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .control-group span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        padding-inline: 8px 4px;
+      }
+
+      .control-group button {
+        min-width: 42px;
       }
 
       nav {
@@ -194,18 +220,18 @@
 
       .brand-copy strong {
         display: block;
-        font-size: 18px;
+        font-size: calc(18px * var(--font-scale));
         letter-spacing: 0;
       }
 
       .brand-copy span {
         color: var(--muted);
-        font-size: 14px;
+        font-size: calc(14px * var(--font-scale));
       }
 
       .slide-tag {
         color: var(--amber);
-        font-size: 14px;
+        font-size: calc(14px * var(--font-scale));
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -214,40 +240,41 @@
       .hero {
         flex: 1;
         display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 34px;
+        grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+        gap: 28px;
         padding: 18px 28px 30px;
-        align-items: center;
+        align-items: stretch;
       }
 
       h1,
       h2 {
         margin: 0;
-        line-height: 1.02;
+        line-height: 1.05;
         letter-spacing: 0;
+        text-wrap: balance;
       }
 
       h1 {
-        font-size: clamp(54px, 7vw, 92px);
-        max-width: 10ch;
+        font-size: clamp(calc(46px * var(--font-scale)), calc(6vw * var(--font-scale)), calc(80px * var(--font-scale)));
+        max-width: 11ch;
       }
 
       h2 {
-        font-size: clamp(42px, 5vw, 66px);
-        max-width: 11ch;
+        font-size: clamp(calc(34px * var(--font-scale)), calc(4.7vw * var(--font-scale)), calc(58px * var(--font-scale)));
+        max-width: 14ch;
       }
 
       .lead {
         margin-top: 18px;
         max-width: 60ch;
-        font-size: clamp(20px, 2.1vw, 28px);
+        font-size: clamp(calc(18px * var(--font-scale)), calc(1.9vw * var(--font-scale)), calc(25px * var(--font-scale)));
         color: #e4f4e8;
       }
 
       .sublead {
         margin-top: 12px;
         max-width: 60ch;
-        font-size: 19px;
+        font-size: calc(18px * var(--font-scale));
         color: var(--muted);
       }
 
@@ -255,67 +282,69 @@
         color: var(--amber);
       }
 
+      .hero-copy {
+        display: grid;
+        align-content: center;
+        gap: 0;
+        min-width: 0;
+      }
+
       .stack {
         display: grid;
-        gap: 16px;
+        gap: 14px;
       }
 
       .signal {
-        padding: 22px 22px 20px;
+        padding: 20px;
         border-radius: 18px;
         background: var(--panel);
         border: 1px solid rgba(95, 170, 128, 0.24);
+        min-width: 0;
       }
 
       .signal strong {
         display: block;
-        font-size: 15px;
+        font-size: calc(14px * var(--font-scale));
         color: var(--amber);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
 
       .signal p {
         margin: 0;
-        font-size: 26px;
+        font-size: calc(22px * var(--font-scale));
+        line-height: 1.2;
+        text-wrap: balance;
       }
 
       .signal small {
         display: block;
         margin-top: 10px;
         color: var(--muted);
-        font-size: 16px;
+        font-size: calc(15px * var(--font-scale));
       }
 
       .mascot-panel {
-        position: relative;
-        min-height: 480px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        align-items: start;
+        gap: 18px;
+        min-height: 100%;
         border-radius: 24px;
         background:
           radial-gradient(circle at top left, rgba(52, 211, 153, 0.24), transparent 28%),
           linear-gradient(180deg, rgba(14, 55, 38, 0.9), rgba(8, 28, 20, 0.98));
         border: 1px solid rgba(108, 186, 142, 0.24);
         overflow: hidden;
-      }
-
-      .mascot-panel img {
-        position: absolute;
-        right: -8px;
-        bottom: -4px;
-        width: min(100%, 520px);
-        max-width: 74%;
-        filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.35));
+        padding: 24px;
       }
 
       .pill-row {
-        position: absolute;
-        left: 24px;
-        top: 24px;
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
-        max-width: 70%;
+        max-width: 100%;
       }
 
       .pill {
@@ -323,37 +352,51 @@
         border-radius: 999px;
         background: rgba(6, 20, 14, 0.56);
         border: 1px solid rgba(101, 181, 135, 0.24);
-        font-size: 14px;
+        font-size: calc(13px * var(--font-scale));
+      }
+
+      .mascot-figure {
+        min-height: 260px;
+        display: grid;
+        place-items: center;
+        padding: 12px 0 6px;
+      }
+
+      .mascot-figure img {
+        width: min(100%, 440px);
+        max-height: min(42vh, 420px);
+        object-fit: contain;
+        filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.35));
       }
 
       .closing {
-        position: absolute;
-        left: 24px;
-        bottom: 28px;
-        max-width: 52%;
-        font-size: 24px;
+        max-width: 24ch;
+        font-size: calc(24px * var(--font-scale));
         font-weight: 600;
+        line-height: 1.16;
+        text-wrap: balance;
       }
 
       .flow {
         flex: 1;
         display: grid;
-        grid-template-rows: auto auto 1fr auto;
+        grid-template-rows: auto auto minmax(320px, 1fr) auto;
         gap: 16px;
         padding: 18px 28px 30px;
       }
 
       .flow-copy {
         display: grid;
-        grid-template-columns: 0.95fr 1.05fr;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
         gap: 28px;
         align-items: start;
       }
 
       .flow-copy p {
         margin: 0;
-        font-size: 21px;
+        font-size: calc(20px * var(--font-scale));
         color: #e2f2e7;
+        line-height: 1.38;
       }
 
       .takeaways {
@@ -367,7 +410,8 @@
         background: var(--panel);
         border: 1px solid rgba(95, 170, 128, 0.24);
         color: var(--muted);
-        font-size: 17px;
+        font-size: calc(16px * var(--font-scale));
+        line-height: 1.35;
       }
 
       .diagram {
@@ -376,13 +420,17 @@
         overflow: hidden;
         border: 1px solid rgba(95, 170, 128, 0.24);
         background: var(--panel-strong);
+        display: grid;
+        place-items: center;
+        padding: 18px;
       }
 
       .diagram img {
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        max-height: 100%;
+        object-fit: contain;
       }
 
       .footer-note {
@@ -400,11 +448,12 @@
         color: var(--amber);
         display: block;
         margin-bottom: 6px;
+        font-size: calc(16px * var(--font-scale));
       }
 
       .footer-note span {
         color: var(--muted);
-        font-size: 16px;
+        font-size: calc(15px * var(--font-scale));
       }
 
       .time {
@@ -412,24 +461,27 @@
         border-radius: 14px;
         background: rgba(245, 158, 11, 0.14);
         color: #ffd98f;
-        font-size: 16px;
+        font-size: calc(15px * var(--font-scale));
         font-weight: 700;
         white-space: nowrap;
       }
 
-      @media (max-width: 1100px) {
+      @media (max-width: 1240px) {
         .hero,
         .flow-copy {
           grid-template-columns: 1fr;
         }
 
         .mascot-panel {
-          min-height: 360px;
+          min-height: 0;
         }
 
         .closing {
-          max-width: 60%;
-          font-size: 21px;
+          max-width: none;
+        }
+
+        .mascot-figure img {
+          max-height: min(36vh, 340px);
         }
       }
 
@@ -453,7 +505,7 @@
 
         .shell {
           width: 100%;
-          min-height: calc(100vh - 84px);
+          min-height: calc(100vh - 104px);
           border-radius: 20px;
         }
 
@@ -470,25 +522,16 @@
         }
 
         .lead {
-          font-size: 18px;
+          font-size: calc(17px * var(--font-scale));
         }
 
         .sublead,
         .flow-copy p {
-          font-size: 17px;
+          font-size: calc(16px * var(--font-scale));
         }
 
         .signal p {
-          font-size: 22px;
-        }
-
-        .pill-row,
-        .closing {
-          max-width: calc(100% - 36px);
-        }
-
-        .closing {
-          font-size: 18px;
+          font-size: calc(20px * var(--font-scale));
         }
 
         .footer-note {
@@ -504,6 +547,16 @@
 
         .timer-value {
           font-size: 28px;
+        }
+
+        .control-row.tight {
+          gap: 10px;
+          justify-content: stretch;
+        }
+
+        .control-group {
+          width: 100%;
+          justify-content: center;
         }
       }
     </style>
@@ -524,6 +577,14 @@
         <button class="primary" id="start-btn" type="button">Start</button>
         <button id="pause-btn" type="button">Pause</button>
         <button id="reset-btn" type="button">Reset</button>
+      </div>
+      <div class="control-row tight">
+        <div class="control-group" aria-label="Tamano de fuente">
+          <span>Texto</span>
+          <button id="font-down-btn" type="button" aria-label="Achicar fuente">A-</button>
+          <button id="font-reset-btn" type="button" aria-label="Restablecer fuente">A</button>
+          <button id="font-up-btn" type="button" aria-label="Agrandar fuente">A+</button>
+        </div>
       </div>
     </div>
 
@@ -547,7 +608,7 @@
         </div>
 
         <div class="hero">
-          <div>
+          <div class="hero-copy">
             <h1>De app gratis a infraestructura de pago para restaurantes.</h1>
             <p class="lead">
               Hoy resolvemos el momento mas incomodo de la mesa: <span class="accent">dividir la cuenta</span>.
@@ -582,11 +643,13 @@
               <div class="pill">Menos friccion para el cliente</div>
               <div class="pill">Mejor cierre para el restaurant</div>
             </div>
+            <div class="mascot-figure">
+              <img src="./assets/pitch-mascot.png" alt="Mascota Repartija" />
+            </div>
             <div class="closing">
               No cambiamos de problema para crecer. <br />
               Cambiamos de posicion dentro de la misma transaccion.
             </div>
-            <img src="./assets/pitch-mascot.png" alt="Mascota Repartija" />
           </div>
         </div>
       </div>
@@ -684,13 +747,26 @@
         const startBtn = document.getElementById("start-btn");
         const pauseBtn = document.getElementById("pause-btn");
         const resetBtn = document.getElementById("reset-btn");
+        const fontDownBtn = document.getElementById("font-down-btn");
+        const fontResetBtn = document.getElementById("font-reset-btn");
+        const fontUpBtn = document.getElementById("font-up-btn");
         const slideMs = totalMs / slides.length;
+        const minScale = 0.85;
+        const maxScale = 1.25;
+        const defaultScale = 1;
 
         let rafId = 0;
         let startedAt = 0;
         let carriedMs = 0;
         let running = false;
         let activeSlide = 0;
+
+        function applyFontScale(scale) {
+          const next = Math.max(minScale, Math.min(maxScale, scale));
+          document.documentElement.style.setProperty("--font-scale", next.toFixed(2));
+          localStorage.setItem("pitch-font-scale", String(next));
+          fontResetBtn.textContent = `${Math.round(next * 100)}%`;
+        }
 
         function formatMs(ms) {
           const safe = Math.max(0, Math.ceil(ms / 1000));
@@ -782,6 +858,15 @@
         });
         pauseBtn.addEventListener("click", pause);
         resetBtn.addEventListener("click", reset);
+        fontDownBtn.addEventListener("click", () => {
+          const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
+          applyFontScale(current - 0.05);
+        });
+        fontResetBtn.addEventListener("click", () => applyFontScale(defaultScale));
+        fontUpBtn.addEventListener("click", () => {
+          const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
+          applyFontScale(current + 0.05);
+        });
 
         document.addEventListener("keydown", (event) => {
           if (event.code === "Space") {
@@ -798,6 +883,16 @@
             event.preventDefault();
             setSlide(activeSlide - 1);
           }
+          if ((event.metaKey || event.ctrlKey) && event.key === "+") {
+            event.preventDefault();
+            const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
+            applyFontScale(current + 0.05);
+          }
+          if ((event.metaKey || event.ctrlKey) && event.key === "-") {
+            event.preventDefault();
+            const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
+            applyFontScale(current - 0.05);
+          }
         });
 
         window.addEventListener("hashchange", () => {
@@ -813,6 +908,7 @@
         });
 
         const params = new URLSearchParams(window.location.search);
+        applyFontScale(Number(localStorage.getItem("pitch-font-scale") || defaultScale));
         render(0);
         if (params.get("autostart") === "1") {
           setTimeout(() => start(), 500);
