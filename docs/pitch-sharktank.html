@@ -49,14 +49,31 @@
         left: 18px;
         z-index: 12;
         display: grid;
-        gap: 10px;
-        width: min(372px, calc(100vw - 36px));
-        padding: 14px;
+        gap: 12px;
+        width: min(380px, calc(100vw - 36px));
+        padding: 14px 14px 12px;
         border-radius: 18px;
-        background: rgba(8, 28, 19, 0.82);
-        border: 1px solid rgba(111, 183, 142, 0.35);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+        background: rgba(7, 22, 16, 0.9);
+        border: 1px solid rgba(126, 208, 161, 0.36);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+      }
+
+      body.panel-right .deck-controls {
+        left: auto;
+        right: 18px;
+      }
+
+      body.panel-collapsed .deck-controls {
+        width: auto;
+        min-width: 230px;
+      }
+
+      .controls-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
       }
 
       .timer-row {
@@ -64,6 +81,21 @@
         justify-content: space-between;
         align-items: baseline;
         gap: 12px;
+      }
+
+      .controls-title strong {
+        display: block;
+        font-size: 14px;
+        color: var(--amber);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .controls-title span {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
       }
 
       .timer-copy strong {
@@ -79,6 +111,67 @@
         margin-top: 4px;
         font-size: 13px;
         color: var(--muted);
+      }
+
+      .controls-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-btn {
+        border: 0;
+        border-radius: 999px;
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+      }
+
+      .icon-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .controls-body {
+        display: grid;
+        gap: 12px;
+      }
+
+      body.panel-collapsed .controls-body {
+        display: none;
+      }
+
+      .collapsed-bar {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 2px;
+      }
+
+      body.panel-collapsed .collapsed-bar {
+        display: flex;
+      }
+
+      .collapsed-meta {
+        display: grid;
+        gap: 2px;
+      }
+
+      .collapsed-meta strong {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .collapsed-actions {
+        display: inline-flex;
+        gap: 8px;
       }
 
       .timer-value {
@@ -121,7 +214,7 @@
         font-size: 13px;
         font-weight: 700;
         color: var(--text);
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.09);
         cursor: pointer;
       }
 
@@ -159,14 +252,15 @@
       }
 
       .fullscreen-hint {
-        color: var(--muted);
+        color: #cae5d6;
         font-size: 12px;
         line-height: 1.3;
+        opacity: 0.9;
       }
 
       body.is-fullscreen .deck-controls,
       body.is-fullscreen nav {
-        opacity: 0.22;
+        opacity: 0.18;
         transition: opacity 180ms ease;
       }
 
@@ -573,6 +667,11 @@
           width: auto;
         }
 
+        body.panel-right .deck-controls {
+          right: 12px;
+          left: 12px;
+        }
+
         .timer-value {
           font-size: 28px;
         }
@@ -591,31 +690,53 @@
   </head>
   <body>
     <div class="deck-controls" aria-label="Controles de presentacion">
-      <div class="timer-row">
-        <div class="timer-copy">
+      <div class="controls-top">
+        <div class="controls-title">
           <strong>Pitch 3:00</strong>
           <span id="slide-status">Slide 1 de 3 · 1:00 por slide</span>
         </div>
-        <div class="timer-value" id="timer">03:00</div>
-      </div>
-      <div class="progress" aria-hidden="true">
-        <div class="progress-bar" id="progress-bar"></div>
-      </div>
-      <div class="control-row">
-        <button class="primary" id="start-btn" type="button">Start</button>
-        <button id="pause-btn" type="button">Pause</button>
-        <button id="reset-btn" type="button">Reset</button>
-        <button id="fullscreen-btn" type="button">Fullscreen</button>
-      </div>
-      <div class="control-row tight">
-        <div class="control-group" aria-label="Tamano de fuente">
-          <span>Texto</span>
-          <button id="font-down-btn" type="button" aria-label="Achicar fuente">A-</button>
-          <button id="font-reset-btn" type="button" aria-label="Restablecer fuente">A</button>
-          <button id="font-up-btn" type="button" aria-label="Agrandar fuente">A+</button>
+        <div class="controls-actions">
+          <button class="icon-btn" id="dock-btn" type="button" aria-label="Mover panel">⇄</button>
+          <button class="icon-btn" id="collapse-btn" type="button" aria-label="Minimizar panel">−</button>
         </div>
       </div>
-      <div class="fullscreen-hint">Tip: usá el boton Fullscreen o la tecla F desde la pagina.</div>
+      <div class="controls-body">
+        <div class="timer-row">
+          <div class="timer-copy">
+            <strong>Tiempo restante</strong>
+            <span>Control rápido para presentar sin tapar la slide</span>
+          </div>
+          <div class="timer-value" id="timer">03:00</div>
+        </div>
+        <div class="progress" aria-hidden="true">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="control-row">
+          <button class="primary" id="start-btn" type="button">Start</button>
+          <button id="pause-btn" type="button">Pause</button>
+          <button id="reset-btn" type="button">Reset</button>
+          <button id="fullscreen-btn" type="button">Fullscreen</button>
+        </div>
+        <div class="control-row tight">
+          <div class="control-group" aria-label="Tamano de fuente">
+            <span>Texto</span>
+            <button id="font-down-btn" type="button" aria-label="Achicar fuente">A-</button>
+            <button id="font-reset-btn" type="button" aria-label="Restablecer fuente">A</button>
+            <button id="font-up-btn" type="button" aria-label="Agrandar fuente">A+</button>
+          </div>
+        </div>
+        <div class="fullscreen-hint">Fullscreen sigue activo. También podés usar la tecla F desde la página.</div>
+      </div>
+      <div class="collapsed-bar">
+        <div class="collapsed-meta">
+          <strong id="collapsed-status">Slide 1</strong>
+          <div class="timer-value" style="font-size: 24px;" id="collapsed-timer">03:00</div>
+        </div>
+        <div class="collapsed-actions">
+          <button class="icon-btn" id="collapsed-fullscreen-btn" type="button" aria-label="Fullscreen">⛶</button>
+          <button class="icon-btn" id="expand-btn" type="button" aria-label="Expandir panel">+</button>
+        </div>
+      </div>
     </div>
 
     <nav>
@@ -770,15 +891,21 @@
         const totalMs = 3 * 60 * 1000;
         const slides = Array.from(document.querySelectorAll(".slide"));
         const timerEl = document.getElementById("timer");
+        const collapsedTimerEl = document.getElementById("collapsed-timer");
         const progressEl = document.getElementById("progress-bar");
         const statusEl = document.getElementById("slide-status");
+        const collapsedStatusEl = document.getElementById("collapsed-status");
         const startBtn = document.getElementById("start-btn");
         const pauseBtn = document.getElementById("pause-btn");
         const resetBtn = document.getElementById("reset-btn");
         const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const collapsedFullscreenBtn = document.getElementById("collapsed-fullscreen-btn");
         const fontDownBtn = document.getElementById("font-down-btn");
         const fontResetBtn = document.getElementById("font-reset-btn");
         const fontUpBtn = document.getElementById("font-up-btn");
+        const dockBtn = document.getElementById("dock-btn");
+        const collapseBtn = document.getElementById("collapse-btn");
+        const expandBtn = document.getElementById("expand-btn");
         const slideMs = totalMs / slides.length;
         const minScale = 0.85;
         const maxScale = 1.25;
@@ -790,10 +917,31 @@
         let running = false;
         let activeSlide = 0;
 
+        function applyPanelPrefs() {
+          const side = localStorage.getItem("pitch-panel-side") || "left";
+          const collapsed = localStorage.getItem("pitch-panel-collapsed") === "1";
+          document.body.classList.toggle("panel-right", side === "right");
+          document.body.classList.toggle("panel-collapsed", collapsed);
+          dockBtn.textContent = side === "right" ? "⇤" : "⇥";
+          collapseBtn.textContent = collapsed ? "+" : "−";
+        }
+
+        function togglePanelSide() {
+          const next = document.body.classList.contains("panel-right") ? "left" : "right";
+          localStorage.setItem("pitch-panel-side", next);
+          applyPanelPrefs();
+        }
+
+        function setPanelCollapsed(collapsed) {
+          localStorage.setItem("pitch-panel-collapsed", collapsed ? "1" : "0");
+          applyPanelPrefs();
+        }
+
         function syncFullscreenState() {
           const active = Boolean(document.fullscreenElement);
           document.body.classList.toggle("is-fullscreen", active);
           fullscreenBtn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
+          collapsedFullscreenBtn.textContent = active ? "🗗" : "⛶";
         }
 
         async function toggleFullscreen() {
@@ -848,8 +996,10 @@
           const slideIndex = Math.min(slides.length - 1, Math.floor(elapsed / slideMs));
 
           timerEl.textContent = formatMs(remaining);
+          collapsedTimerEl.textContent = formatMs(remaining);
           progressEl.style.width = `${(elapsed / totalMs) * 100}%`;
           statusEl.textContent = `Slide ${slideIndex + 1} de ${slides.length} · 1:00 por slide`;
+          collapsedStatusEl.textContent = `Slide ${slideIndex + 1}`;
 
           if (slideIndex !== activeSlide) {
             activeSlide = slideIndex;
@@ -906,6 +1056,7 @@
         pauseBtn.addEventListener("click", pause);
         resetBtn.addEventListener("click", reset);
         fullscreenBtn.addEventListener("click", toggleFullscreen);
+        collapsedFullscreenBtn.addEventListener("click", toggleFullscreen);
         fontDownBtn.addEventListener("click", () => {
           const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
           applyFontScale(current - 0.05);
@@ -915,6 +1066,12 @@
           const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
           applyFontScale(current + 0.05);
         });
+        dockBtn.addEventListener("click", togglePanelSide);
+        collapseBtn.addEventListener("click", () => {
+          const collapsed = document.body.classList.contains("panel-collapsed");
+          setPanelCollapsed(!collapsed);
+        });
+        expandBtn.addEventListener("click", () => setPanelCollapsed(false));
 
         document.addEventListener("keydown", (event) => {
           if (event.code === "Space") {
@@ -965,6 +1122,7 @@
 
         const params = new URLSearchParams(window.location.search);
         applyFontScale(Number(localStorage.getItem("pitch-font-scale") || defaultScale));
+        applyPanelPrefs();
         syncFullscreenState();
         render(0);
         if (params.get("autostart") === "1") {
