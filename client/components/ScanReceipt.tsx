@@ -11,7 +11,10 @@ type ParsedLine = {
 
 type Props = {
   currency: string;
-  onConfirm: (items: { name: string; quantity: number; unitPriceCents: number }[]) => void;
+  onConfirm: (
+    items: { name: string; quantity: number; unitPriceCents: number }[],
+    detectedCurrency: string | null
+  ) => void;
   onClose: () => void;
 };
 
@@ -35,6 +38,7 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
   const [phase, setPhase] = useState<Phase>('pick');
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [lines, setLines] = useState<ParsedLine[]>([]);
+  const [detectedCurrency, setDetectedCurrency] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFile(file: File) {
@@ -54,7 +58,9 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
       }
       const data = (await res.json()) as {
         items: { name: string; quantity: number; unitPriceCents: number }[];
+        currency?: string;
       };
+      setDetectedCurrency(data.currency ?? null);
       if (!data.items || data.items.length === 0) {
         setError('No encontré items en la imagen. Probá con mejor luz o cargá manualmente.');
         setPhase('error');
@@ -87,10 +93,14 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
         unitPriceCents: l.unitPriceCents
       }));
     if (items.length === 0) return;
-    onConfirm(items);
+    const validCurrency =
+      detectedCurrency && detectedCurrency !== 'XXX' ? detectedCurrency : null;
+    onConfirm(items, validCurrency);
   }
 
   const toConfirm = lines.filter((l) => l.include).length;
+  const displayCurrency =
+    detectedCurrency && detectedCurrency !== 'XXX' ? detectedCurrency : currency;
 
   return (
     <Modal open onClose={onClose} className="scan-modal">
@@ -143,10 +153,24 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
       {phase === 'review' && (
         <>
           <div className="scan-head">
-            <h2>Items detectados <span className="scan-count">{toConfirm}/{lines.length}</span></h2>
+            <h2>
+              Items detectados{' '}
+              {detectedCurrency && detectedCurrency !== 'XXX' && (
+                <span className="scan-count">{detectedCurrency}</span>
+              )}{' '}
+              <span className="scan-count">{toConfirm}/{lines.length}</span>
+            </h2>
             <p className="muted">
               Destildá los que no sean items. Podés editar nombre, cantidad y precio.
             </p>
+            {detectedCurrency &&
+              detectedCurrency !== 'XXX' &&
+              detectedCurrency !== currency && (
+                <p className="muted" style={{ fontSize: 12 }}>
+                  Detectado en <strong>{detectedCurrency}</strong>. Al confirmar, la mesa pasa
+                  de {currency} a {detectedCurrency}.
+                </p>
+              )}
           </div>
           <div className="scan-body">
             <ul className="scan-lines">
@@ -170,7 +194,7 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
                         aria-label="Nombre del item"
                       />
                       <span className="scan-line-total">
-                        {formatMoney(l.unitPriceCents * l.quantity, currency)}
+                        {formatMoney(l.unitPriceCents * l.quantity, displayCurrency)}
                       </span>
                     </div>
                     <div className="scan-row-bottom">
@@ -196,7 +220,7 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
                         inputMode="decimal"
                         aria-label="Precio unitario"
                       />
-                      <span className="scan-currency">{currency}</span>
+                      <span className="scan-currency">{displayCurrency}</span>
                     </div>
                   </div>
                 </li>

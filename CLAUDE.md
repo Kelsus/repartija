@@ -72,7 +72,7 @@ Per-session `localStorage` keys (`client/lib/storage.ts`):
 
 ### Socket events (server-defined, in `server/index.ts`)
 
-`session:join` (with ack), `item:add`, `items:addMany`, `item:remove`, `item:claim`, `session:tip`, `session:rename`, `session:close`/`reopen` (host-token gated), `participant:payment`. Server emits `session:state` to broadcast. Add new events here and mirror types in `shared/types.ts`.
+`session:join` (with ack), `item:add`, `items:addMany`, `item:remove`, `item:claim`, `session:tip`, `session:rename`, `session:currency` (host-token gated, ISO 4217), `session:close`/`reopen` (host-token gated), `participant:payment`. Server emits `session:state` to broadcast. Add new events here and mirror types in `shared/types.ts`.
 
 ### Payment
 

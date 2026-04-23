@@ -208,7 +208,18 @@ function SessionView({
     setItemQty('1');
   }
 
-  function addManyFromScan(items: { name: string; quantity: number; unitPriceCents: number }[]) {
+  function addManyFromScan(
+    items: { name: string; quantity: number; unitPriceCents: number }[],
+    detectedCurrency: string | null
+  ) {
+    if (
+      detectedCurrency &&
+      detectedCurrency !== state?.currency &&
+      isHost
+    ) {
+      const hostToken = getHostToken(code);
+      socket.emit('session:currency', { code, hostToken, currency: detectedCurrency });
+    }
     socket.emit('items:addMany', { code, items });
     setShowScan(false);
   }

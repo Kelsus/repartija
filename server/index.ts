@@ -119,13 +119,17 @@ app.post('/api/receipts/parse', async (req, res) => {
         { inlineData: { mimeType, data: imageBase64 } },
         {
           text:
-            'Extract line items from this restaurant/store receipt. It may be in Spanish, ' +
-            'Portuguese, or English. Return ONLY a JSON object: ' +
-            '{"items":[{"name":string,"quantity":integer>=1,"unitPriceCents":integer>=0, "totalPriceCents":integer>=0}]}. ' +
-            'unitPriceCents is the UNIT price in cents (not the line total). ' +
+            'Extract line items AND the currency from this restaurant/store receipt. ' +
+            'It may be in Spanish, Portuguese, or English. Return ONLY a JSON object: ' +
+            '{"currency":"<ISO 4217 code>","items":[{"name":string,"quantity":integer>=1,"unitPriceCents":integer>=0,"totalPriceCents":integer>=0}]}. ' +
+            'currency MUST be the ISO 4217 3-letter uppercase code that matches the receipt ' +
+            '(e.g. ARS, USD, EUR, BRL, CLP, MXN, COP, PEN, UYU, GBP). Infer from currency symbols ' +
+            '(US$ / U$S → USD, R$ → BRL, € → EUR, £ → GBP, $ alone on a Spanish receipt usually ARS, ' +
+            'country/address hints, or language). If truly unknown, use "XXX". ' +
+            'unitPriceCents is the UNIT price in minor units (cents), not the line total. ' +
             'Skip subtotals, taxes (IVA), tips (propina), totals, discounts, addresses, ' +
             'phone numbers, thank-you lines, dates, and cashier info. ' +
-            'If you cannot read the receipt, return {"items":[]}.'
+            'If you cannot read the receipt, return {"currency": string,"items":[]}.'
         }
       ],
       config: { responseMimeType: 'application/json', temperature: 0 }
@@ -139,10 +143,9 @@ app.post('/api/receipts/parse', async (req, res) => {
       return res.status(502).json({ error: 'model returned invalid JSON', raw: text });
     }
 
-    const rawItems =
-      parsed && typeof parsed === 'object' && Array.isArray((parsed as any).items)
-        ? ((parsed as any).items as unknown[])
-        : [];
+    const parsedObj =
+      parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+    const rawItems = Array.isArray(parsedObj.items) ? (parsedObj.items as unknown[]) : [];
     const items = rawItems
       .map((it) => {
         const o = (it ?? {}) as Record<string, unknown>;
@@ -153,7 +156,10 @@ app.post('/api/receipts/parse', async (req, res) => {
       })
       .filter((it) => it.name.length > 0);
 
-    res.json({ items });
+    const rawCurrency = (parsedObj.currency ?? '').toString().trim().toUpperCase();
+    const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'XXX';
+
+    res.json({ items, currency });
   } catch (err) {
     console.error('[receipts/parse]', err);
     res.status(500).json({ error: (err as Error).message ?? 'gemini call failed' });
@@ -384,6 +390,23 @@ io.on('connection', (socket) => {
       const s = getSession(payload.code);
       if (!s || s.closed) return ack?.({ ok: false });
       s.title = (payload.title ?? '').toString().slice(0, 80) || s.title;
+      ack?.({ ok: true });
+      broadcastState(s.code);
+    }
+  );
+
+  socket.on(
+    'session:currency',
+    (
+      payload: { code: string; hostToken: string; currency: string },
+      ack?: (r: { ok: boolean; error?: string }) => void
+    ) => {
+      const s = getSession(payload.code);
+      if (!s) return ack?.({ ok: false, error: 'no existe' });
+      if (s.hostToken !== payload.hostToken) return ack?.({ ok: false, error: 'solo host' });
+      const code = (payload.currency ?? '').toString().trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(code)) return ack?.({ ok: false, error: 'currency inválida' });
+      s.currency = code;
       ack?.({ ok: true });
       broadcastState(s.code);
     }
