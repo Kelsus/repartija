@@ -38,16 +38,16 @@ test('demo video: 3 personas, flujo completo', async ({ browser }) => {
   await host.goto('/');
   await beat(900);
   await host.getByPlaceholder('ej. Juan').first().fill('Juan');
-  await beat(300);
-  await host.getByPlaceholder('ej. Cumple de Ana').fill('Asado');
-  await beat(300);
+  await beat(350);
+  await host.getByPlaceholder('ej. Cumple de Ana').fill('Juntada de amigos');
+  await beat(400);
   await host.getByPlaceholder(/juan\.mp/).fill('juan.mp');
-  await beat(500);
+  await beat(600);
   await host.getByRole('button', { name: /crear mesa/i }).click();
   await host.waitForURL(/\/s\/[A-Z0-9]{6}/);
   await host.waitForSelector('.session-title');
   const code = host.url().match(/\/s\/([A-Z0-9]{6})/)![1];
-  await beat(900);
+  await beat(1000);
 
   await host.getByRole('button', { name: /Invitar/i }).click();
   await expect(host.getByRole('heading', { name: /Invitá a la mesa/i })).toBeVisible();
@@ -81,19 +81,27 @@ test('demo video: 3 personas, flujo completo', async ({ browser }) => {
   await beat(1500);
 
   await host.getByRole('button', { name: /Cerrar mesa/i }).click();
-  await beat(500);
+  await beat(700);
   await host.locator('.confirm-modal').getByRole('button', { name: /Cerrar mesa/i }).click();
   await expect(host.locator('.pill.closed')).toBeVisible();
-  await beat(1600);
+  await beat(2000);
 
   await host.getByRole('button', { name: /Efectivo/i }).click();
-  await beat(700);
+  await beat(1000);
   await host.getByRole('button', { name: /^Pagué$/ }).click();
-  await beat(500);
+  await beat(1200);
   await ana.getByRole('button', { name: /^Pagué$/ }).click();
-  await beat(500);
+  await beat(1200);
   await beto.getByRole('button', { name: /^Pagué$/ }).click();
-  await beat(2200);
+  await beat(2500);
+
+  // Snapshot de host con todos pagos confirmados — se usa como frame de cierre.
+  await host.evaluate(() => window.scrollTo({ top: 0 }));
+  await beat(400);
+  await host.screenshot({
+    path: path.join(OUT_DIR, 'host-final.png'),
+    fullPage: false
+  });
 
   await Promise.all([hostCtx.close(), anaCtx.close(), betoCtx.close()]);
 
