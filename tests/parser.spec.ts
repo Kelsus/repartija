@@ -194,6 +194,77 @@ test('parser: integer-looking decimals (2,00 / 2.00) read as qty 2', () => {
   }
 });
 
+test('parser: leading quantity before product name is preserved as qty', () => {
+  const sample = `
+2 Empanadas 800 1600
+3 Agua sin gas 400 1200
+`;
+  const items = parseReceipt(sample).filter((l) => l.include);
+
+  const emp = items.find((i) => /Empanadas/i.test(i.name))!;
+  expect(emp.quantity).toBe(2);
+  expect(emp.unitPriceCents).toBe(80000);
+
+  const agua = items.find((i) => /Agua sin gas/i.test(i.name))!;
+  expect(agua.quantity).toBe(3);
+  expect(agua.unitPriceCents).toBe(40000);
+});
+
+test('parser: quantity merged into name column still parses correctly', () => {
+  const sample = `
+Producto        Precio   Importe
+Empanadas 2     800      1600
+Hamburguesa x3  1500     4500
+Flan 4 u        500      2000
+`;
+  const items = parseReceipt(sample).filter((l) => l.include);
+
+  const emp = items.find((i) => /Empanadas/i.test(i.name))!;
+  expect(emp.quantity).toBe(2);
+  expect(emp.unitPriceCents).toBe(80000);
+
+  const burger = items.find((i) => /Hamburguesa/i.test(i.name))!;
+  expect(burger.quantity).toBe(3);
+  expect(burger.unitPriceCents).toBe(150000);
+
+  const flan = items.find((i) => /Flan/i.test(i.name))!;
+  expect(flan.quantity).toBe(4);
+  expect(flan.unitPriceCents).toBe(50000);
+});
+
+test('parser: if OCR swaps price and quantity, prefers the integer as qty', () => {
+  const sample = `
+Pizza 1200 2
+Milanesa 2500 3
+`;
+  const items = parseReceipt(sample).filter((l) => l.include);
+
+  const pizza = items.find((i) => /Pizza/i.test(i.name))!;
+  expect(pizza.quantity).toBe(2);
+  expect(pizza.unitPriceCents).toBe(120000);
+
+  const milanesa = items.find((i) => /Milanesa/i.test(i.name))!;
+  expect(milanesa.quantity).toBe(3);
+  expect(milanesa.unitPriceCents).toBe(250000);
+});
+
+test('parser: product variants with numeric names do not become quantities', () => {
+  const sample = `
+Descripció    Quant  Preu   Import
+CERVEZA 300   2,00   2,55   5,10
+COCA COLA 2L  1,00   3,10   3,10
+`;
+  const items = parseReceipt(sample).filter((l) => l.include);
+
+  const beer = items.find((i) => /CERVEZA 300/i.test(i.name))!;
+  expect(beer.quantity).toBe(2);
+  expect(beer.unitPriceCents).toBe(255);
+
+  const coke = items.find((i) => /COCA COLA 2L/i.test(i.name))!;
+  expect(coke.quantity).toBe(1);
+  expect(coke.unitPriceCents).toBe(310);
+});
+
 test('parser: without header, still filters obvious address/phone lines', () => {
   const sample = `
 Pizzeria La Mejor

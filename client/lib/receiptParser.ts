@@ -78,6 +78,57 @@ function hasEnoughLetters(s: string, min = 2): boolean {
   return (s.match(/[a-zA-ZáéíóúñÁÉÍÓÚÑçÇ]/g) ?? []).length >= min;
 }
 
+function isIntegerish(n: number): boolean {
+  return Math.abs(n - Math.round(n)) < 0.02;
+}
+
+function looksLikeQuantity(n: number): boolean {
+  return n > 0 && n <= 99 && isIntegerish(n);
+}
+
+function approxLineTotal(qty: number, unit: number, total: number): boolean {
+  const tol = Math.max(0.02, total * 0.03);
+  return Math.abs(qty * unit - total) <= tol;
+}
+
+function extractLeadingQty(text: string): { qty: number; stripped: string } | null {
+  const patterns = [
+    /^\s*(\d{1,2})(?:[.,]0{1,2})?\s*[xX×]\s+(.+)$/i,
+    /^\s*(\d{1,2})(?:[.,]0{1,2})?\s*(?:u|ud|uds|un|uni|unid|unidad(?:es)?)\s+(.+)$/i,
+    /^\s*(\d{1,2})(?:[.,]0{1,2})\s+(.+)$/i,
+    /^\s*(\d{1,2})\s+(.+)$/
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (!m) continue;
+    const qty = parseInt(m[1], 10);
+    const stripped = m[2].trim();
+    if (looksLikeQuantity(qty) && hasEnoughLetters(stripped)) {
+      return { qty, stripped };
+    }
+  }
+  return null;
+}
+
+function extractQtyFromName(name: string): { qty: number; stripped: string } | null {
+  const patterns = [
+    /^(.+?)\s*[xX×]\s*(\d{1,2})(?:[.,]0{1,2})?$/i,
+    /^(.+?)\s+(\d{1,2})(?:[.,]0{1,2})?\s*(?:u|ud|uds|un|uni|unid|unidad(?:es)?)$/i,
+    /^(.+?)\s+(\d{1,2})(?:[.,]0{1,2})$/i,
+    /^(.+?)\s+(\d{1,2})$/i
+  ];
+  for (const re of patterns) {
+    const m = name.match(re);
+    if (!m) continue;
+    const stripped = m[1].trim();
+    const qty = parseInt(m[2], 10);
+    if (looksLikeQuantity(qty) && hasEnoughLetters(stripped)) {
+      return { qty, stripped };
+    }
+  }
+  return null;
+}
+
 /**
  * Given a name column and the ordered numeric columns of a ticket line,
  * pick the (qty, unit) pair that is most consistent with the trailing `total`
@@ -86,44 +137,70 @@ function hasEnoughLetters(s: string, min = 2): boolean {
  */
 function assign(
   name: string,
-  nums: number[]
+  nums: number[],
+  explicitQty?: number
 ): { qty: number; unit: number; confidence: 'high' | 'medium' | 'low' } | null {
   const positive = nums.filter((n) => n > 0);
   if (positive.length === 0) return null;
 
-  if (nums.length >= 3) {
-    const [q, u, t] = nums;
-    const tol = Math.max(0.02, t * 0.03);
-    if (q > 0 && q <= 200 && u > 0 && t > 0 && Math.abs(q * u - t) <= tol) {
-      return { qty: Math.max(1, Math.round(q)), unit: u, confidence: 'high' };
-    }
-    // Try alternate orders in case columns are shifted
-    //  [unit, qty, total] or [qty, total, unit]
-    const perms: Array<[number, number, number]> = [
-      [nums[0], nums[1], nums[2]],
-      [nums[1], nums[0], nums[2]],
-      [nums[0], nums[2], nums[1]]
-    ];
-    for (const [qq, uu, tt] of perms) {
-      const t2 = Math.max(0.02, tt * 0.03);
-      if (qq > 0 && qq <= 200 && uu > 0 && tt > 0 && Math.abs(qq * uu - tt) <= t2) {
-        return { qty: Math.max(1, Math.round(qq)), unit: uu, confidence: 'high' };
+  const qtyCandidates: Array<{ qty: number; idx: number | null; source: 'explicit' | 'numeric' }> = [];
+  if (explicitQty && looksLikeQuantity(explicitQty)) {
+    qtyCandidates.push({ qty: explicitQty, idx: null, source: 'explicit' });
+  }
+  positive.forEach((n, idx) => {
+    if (looksLikeQuantity(n)) qtyCandidates.push({ qty: Math.round(n), idx, source: 'numeric' });
+  });
+
+  let best:
+    | { qty: number; unit: number; confidence: 'high' | 'medium' | 'low'; score: number }
+    | null = null;
+
+  for (const q of qtyCandidates) {
+    for (let unitIdx = 0; unitIdx < positive.length; unitIdx++) {
+      if (q.idx === unitIdx) continue;
+      for (let totalIdx = 0; totalIdx < positive.length; totalIdx++) {
+        if (totalIdx === unitIdx || totalIdx === q.idx) continue;
+        const unit = positive[unitIdx];
+        const total = positive[totalIdx];
+        if (!approxLineTotal(q.qty, unit, total)) continue;
+        let score = 100;
+        if (q.source === 'explicit') score += 20;
+        if (totalIdx === positive.length - 1) score += 10;
+        if (unitIdx < totalIdx) score += 5;
+        if (q.idx !== null && q.idx < unitIdx) score += 4;
+        const confidence = score >= 120 ? 'high' : 'medium';
+        if (!best || score > best.score) {
+          best = { qty: q.qty, unit, confidence, score };
+        }
       }
     }
-    // No valid match — the last column is most likely the line total; take it as unit with qty=1
-    return { qty: 1, unit: t > 0 ? t : u, confidence: 'low' };
   }
 
-  if (nums.length === 2) {
-    const [a, b] = nums;
-    const aIsQty = a > 0 && a <= 50 && Math.abs(a - Math.round(a)) < 0.02;
-    if (aIsQty && b > 0 && b > a) {
+  if (best) {
+    return { qty: best.qty, unit: best.unit, confidence: best.confidence };
+  }
+
+  if (explicitQty && looksLikeQuantity(explicitQty)) {
+    if (positive.length === 1) {
+      return { qty: explicitQty, unit: positive[0], confidence: 'high' };
+    }
+    const withoutMatchingQty = positive.filter((n) => !looksLikeQuantity(n) || Math.round(n) !== explicitQty);
+    const unit = withoutMatchingQty.length > 0 ? Math.min(...withoutMatchingQty) : Math.max(...positive);
+    return { qty: explicitQty, unit, confidence: positive.length >= 2 ? 'medium' : 'high' };
+  }
+
+  if (positive.length === 2) {
+    const [a, b] = positive;
+    if (looksLikeQuantity(a) && b > 0) {
       return { qty: Math.max(1, Math.round(a)), unit: b, confidence: 'medium' };
     }
-    return { qty: 1, unit: b > 0 ? b : a, confidence: 'medium' };
+    if (looksLikeQuantity(b) && a > 0) {
+      return { qty: Math.max(1, Math.round(b)), unit: a, confidence: 'medium' };
+    }
+    return { qty: 1, unit: Math.max(a, b), confidence: 'medium' };
   }
 
-  return { qty: 1, unit: nums[0], confidence: 'medium' };
+  return { qty: 1, unit: positive[positive.length - 1], confidence: 'medium' };
 }
 
 function build(
@@ -153,36 +230,22 @@ function parseLine(raw: string): ParsedLine | null {
   if (looksLikeAddress(collapsed)) return null;
   if (looksLikeSkipKeyword(collapsed)) return null;
 
-  // Legacy "N x Name price" prefix
-  const prefix = collapsed.match(/^(\d{1,2})\s*[xX×]\s+(.+)$/);
-  if (prefix) {
-    const explicitQty = parseInt(prefix[1], 10);
-    const rest = prefix[2];
-    // Parse remaining line for name + trailing numbers
-    const parsed = parseFreeform(collapsed, rest);
-    if (parsed) {
-      parsed.quantity = Math.max(1, Math.min(99, explicitQty));
-      parsed.confidence = 'high';
-      return parsed;
-    }
-    return null;
-  }
-
   // Strategy 1 — column split (2+ spaces separates columns)
   //   "PAN           10,00  1,95   19,50"
   //   → ["PAN", "10,00", "1,95", "19,50"]
   const cols = preserved.split(/\s{2,}/).map((s) => s.trim()).filter(Boolean);
   if (cols.length >= 2) {
-    const nameCol = cols[0];
+    const qtyInName = extractQtyFromName(cols[0]);
+    const nameCol = qtyInName?.stripped ?? cols[0];
     const numCols = cols.slice(1);
     // All remaining columns must look numeric for this to be a true columnar row
     if (numCols.every(isNumericToken) && hasEnoughLetters(nameCol)) {
       const nums = numCols
         .map(cleanNum)
         .filter((n): n is number => n !== null && n >= 0);
-      // Keep the LAST 3 columns (ignore any stray extra columns at the end, like "IVA %")
-      const effective = nums.slice(-3);
-      const a = assign(nameCol, effective);
+      // Keep the LAST 4 columns so we still retain qty when OCR leaks an extra numeric code column.
+      const effective = nums.slice(-4);
+      const a = assign(nameCol, effective, qtyInName?.qty);
       if (a) return build(collapsed, nameCol, a);
     }
   }
@@ -192,7 +255,9 @@ function parseLine(raw: string): ParsedLine | null {
 }
 
 function parseFreeform(rawLine: string, body: string): ParsedLine | null {
-  const tokens = body.split(' ');
+  const leadingQty = extractLeadingQty(body);
+  const normalizedBody = leadingQty?.stripped ?? body;
+  const tokens = normalizedBody.split(' ');
   if (tokens.length < 2) return null;
   const trailing: string[] = [];
   let i = tokens.length - 1;
@@ -202,14 +267,17 @@ function parseFreeform(rawLine: string, body: string): ParsedLine | null {
   }
   if (trailing.length === 0) return null;
   const nameTokens = tokens.slice(0, i + 1);
-  const name = nameTokens.join(' ').trim();
+  const rawName = nameTokens.join(' ').trim();
+  const qtyInName = extractQtyFromName(rawName);
+  const name = qtyInName?.stripped ?? rawName;
   if (!name) return null;
   if (!hasEnoughLetters(name)) return null;
   const nums = trailing
     .map(cleanNum)
     .filter((n): n is number => n !== null && n >= 0);
   if (nums.length === 0) return null;
-  const a = assign(name, nums);
+  const explicitQty = qtyInName?.qty ?? leadingQty?.qty;
+  const a = assign(name, nums, explicitQty);
   if (!a) return null;
   return build(rawLine, name, a);
 }
