@@ -158,6 +158,34 @@
         min-width: 42px;
       }
 
+      .fullscreen-hint {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      body.is-fullscreen .deck-controls,
+      body.is-fullscreen nav {
+        opacity: 0.22;
+        transition: opacity 180ms ease;
+      }
+
+      body.is-fullscreen .deck-controls:hover,
+      body.is-fullscreen .deck-controls:focus-within,
+      body.is-fullscreen nav:hover,
+      body.is-fullscreen nav:focus-within {
+        opacity: 1;
+      }
+
+      body.is-fullscreen .slide {
+        padding: 18px;
+      }
+
+      body.is-fullscreen .shell {
+        width: min(1560px, calc(100vw - 36px));
+        min-height: calc(100vh - 36px);
+      }
+
       nav {
         position: fixed;
         top: 18px;
@@ -577,6 +605,7 @@
         <button class="primary" id="start-btn" type="button">Start</button>
         <button id="pause-btn" type="button">Pause</button>
         <button id="reset-btn" type="button">Reset</button>
+        <button id="fullscreen-btn" type="button">Fullscreen</button>
       </div>
       <div class="control-row tight">
         <div class="control-group" aria-label="Tamano de fuente">
@@ -586,6 +615,7 @@
           <button id="font-up-btn" type="button" aria-label="Agrandar fuente">A+</button>
         </div>
       </div>
+      <div class="fullscreen-hint">Tip: usá el boton Fullscreen o la tecla F desde la pagina.</div>
     </div>
 
     <nav>
@@ -625,14 +655,14 @@
                 <small>Sin discusiones, sin calculadora y sin friccion social.</small>
               </div>
               <div class="signal">
-                <strong>Vision</strong>
-                <p>La cuenta aparece directo en la mesa, lista para cerrar.</p>
-                <small>La experiencia deja de empezar en el ticket y empieza en el momento correcto.</small>
+                <strong>Mercado</strong>
+                <p>Ya existen referentes como sunday, pero todavia es una categoria poco saturada.</p>
+                <small>Hay espacio para una propuesta centrada en dividir y pagar la mesa completa desde el celular.</small>
               </div>
               <div class="signal">
-                <strong>Negocio</strong>
-                <p>La app sigue siendo gratis; el revenue llega cuando el pago sucede en Repartija.</p>
-                <small>La monetizacion aparece sin agregar complejidad al usuario.</small>
+                <strong>Estimacion</strong>
+                <p>Con 100 restaurantes y 40 pagos por dia, una comision de 1.5% puede superar US$20k mensuales.</p>
+                <small>La app sigue siendo gratis; el revenue aparece cuando el pago pasa por Repartija.</small>
               </div>
             </div>
           </div>
@@ -673,11 +703,11 @@
           <div class="flow-copy">
             <p>
               El producto ya demuestra algo importante: cuando la cuenta se vuelve compartida,
-              las personas quieren una forma simple, visual y colaborativa de cerrar sin discutir.
+              las personas quieren una forma simple, visual y colaborativa de dividir y pagar sin discutir.
             </p>
             <div class="takeaways">
               <div>La dinamica social ya esta validada: cada persona identifica lo suyo rapido.</div>
-              <div>Repartija baja tension en el momento mas sensible de la experiencia.</div>
+              <div>Repartija baja tension en el momento mas sensible: dividir la cuenta y pagarla.</div>
               <div>El siguiente salto es hacer que cerrar la mesa sea tan facil como repartirla.</div>
             </div>
           </div>
@@ -709,16 +739,16 @@
         </div>
 
         <div class="flow">
-          <h2>La siguiente etapa convierte a Repartija en el cierre natural de la salida.</h2>
+          <h2>La siguiente etapa elimina la ultima friccion: esperar al mozo para cerrar la mesa.</h2>
           <div class="flow-copy">
             <p>
-              La experiencia ideal es simple: entrar a la mesa, ver la cuenta ya lista,
-              marcar consumo individual o compartido y pagar en el mismo flujo, sin pasos extra.
+              La experiencia ideal es simple: cada persona escanea la mesa, elige lo que consumio,
+              paga su parte desde el celular y se va sin llamar al mozo ni esperar el cierre manual.
             </p>
             <div class="takeaways">
-              <div>Menos espera, menos confusiones y menos abandono al momento de pagar.</div>
-              <div>Una experiencia moderna para el comensal y un cierre mas ordenado para el local.</div>
-              <div>Repartija monetiza cuando se vuelve parte del pago, no antes.</div>
+              <div>Menos espera, menos confusiones y menos friccion justo al dividir la cuenta y pagar.</div>
+              <div>Cuando toda la mesa queda saldada, Repartija notifica al restaurant y habilita la salida.</div>
+              <div>Para el local es una operacion mas liviana; para el usuario, una salida mas rapida y natural.</div>
             </div>
           </div>
           <div class="diagram">
@@ -727,7 +757,7 @@
           <div class="footer-note">
             <div>
               <strong>Lectura de producto</strong>
-              <span>La misma experiencia que hoy ordena la cuenta puede convertirse en la forma mas conveniente de terminarla.</span>
+              <span>La misma experiencia que hoy ordena la cuenta puede transformarse en la forma mas rapida de dividirla, pagarla y terminar la mesa.</span>
             </div>
             <div class="time">55 segundos</div>
           </div>
@@ -745,6 +775,7 @@
         const startBtn = document.getElementById("start-btn");
         const pauseBtn = document.getElementById("pause-btn");
         const resetBtn = document.getElementById("reset-btn");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
         const fontDownBtn = document.getElementById("font-down-btn");
         const fontResetBtn = document.getElementById("font-reset-btn");
         const fontUpBtn = document.getElementById("font-up-btn");
@@ -758,6 +789,24 @@
         let carriedMs = 0;
         let running = false;
         let activeSlide = 0;
+
+        function syncFullscreenState() {
+          const active = Boolean(document.fullscreenElement);
+          document.body.classList.toggle("is-fullscreen", active);
+          fullscreenBtn.textContent = active ? "Exit Fullscreen" : "Fullscreen";
+        }
+
+        async function toggleFullscreen() {
+          try {
+            if (document.fullscreenElement) {
+              await document.exitFullscreen();
+            } else {
+              await document.documentElement.requestFullscreen();
+            }
+          } catch (error) {
+            console.error("fullscreen-error", error);
+          }
+        }
 
         function applyFontScale(scale) {
           const next = Math.max(minScale, Math.min(maxScale, scale));
@@ -856,6 +905,7 @@
         });
         pauseBtn.addEventListener("click", pause);
         resetBtn.addEventListener("click", reset);
+        fullscreenBtn.addEventListener("click", toggleFullscreen);
         fontDownBtn.addEventListener("click", () => {
           const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
           applyFontScale(current - 0.05);
@@ -881,6 +931,13 @@
             event.preventDefault();
             setSlide(activeSlide - 1);
           }
+          if (!event.metaKey && !event.ctrlKey && event.key.toLowerCase() === "f") {
+            event.preventDefault();
+            toggleFullscreen();
+          }
+          if (event.key === "Escape" && document.fullscreenElement) {
+            syncFullscreenState();
+          }
           if ((event.metaKey || event.ctrlKey) && event.key === "+") {
             event.preventDefault();
             const current = Number(localStorage.getItem("pitch-font-scale") || defaultScale);
@@ -904,9 +961,11 @@
             render(carriedMs);
           }
         });
+        document.addEventListener("fullscreenchange", syncFullscreenState);
 
         const params = new URLSearchParams(window.location.search);
         applyFontScale(Number(localStorage.getItem("pitch-font-scale") || defaultScale));
+        syncFullscreenState();
         render(0);
         if (params.get("autostart") === "1") {
           setTimeout(() => start(), 500);
