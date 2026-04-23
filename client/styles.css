@@ -498,8 +498,10 @@ button.danger:hover { background: var(--danger-soft); }
 
 .qr-modal-inner h2 { margin: 0 0 16px; font-size: 18px; }
 .qr-big {
+  display: block;
   width: 100%;
   max-width: 280px;
+  margin: 0 auto;
   border-radius: 10px;
   background: white;
   padding: 12px;
