@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repartija | Pitch Shark Tank</title>
+    <style>
+      :root {
+        --bg: #071c13;
+        --panel: rgba(14, 44, 31, 0.82);
+        --panel-strong: rgba(10, 33, 23, 0.94);
+        --border: #1f6a49;
+        --text: #eef8f1;
+        --muted: #a7cab7;
+        --teal: #2dd4bf;
+        --green: #34d399;
+        --lime: #b8d856;
+        --amber: #f59e0b;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        background:
+          radial-gradient(circle at top left, rgba(52, 211, 153, 0.18), transparent 26%),
+          radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12), transparent 28%),
+          linear-gradient(180deg, #061910 0%, #0a2c1f 45%, #071b13 100%);
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.4;
+        background: transparent;
+      }
+
+      .deck-controls {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 12;
+        display: grid;
+        gap: 10px;
+        width: min(320px, calc(100vw - 36px));
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(8, 28, 19, 0.82);
+        border: 1px solid rgba(111, 183, 142, 0.35);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+      }
+
+      .timer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+      }
+
+      .timer-copy strong {
+        display: block;
+        font-size: 14px;
+        color: var(--amber);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .timer-copy span {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .timer-value {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .progress {
+        height: 8px;
+        width: 100%;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--teal), var(--amber));
+      }
+
+      .control-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .control-row button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+      }
+
+      .control-row button.primary {
+        background: rgba(245, 158, 11, 0.18);
+        color: #ffe4a9;
+      }
+
+      .control-row button:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .control-row button.primary:hover {
+        background: rgba(245, 158, 11, 0.26);
+      }
+
+      nav {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 10;
+        display: flex;
+        gap: 10px;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: var(--text);
+        background: rgba(8, 28, 19, 0.72);
+        border: 1px solid rgba(111, 183, 142, 0.35);
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-size: 14px;
+        backdrop-filter: blur(12px);
+      }
+
+      .slide {
+        min-height: 100vh;
+        scroll-snap-align: start;
+        display: flex;
+        align-items: center;
+        padding: 36px;
+      }
+
+      .shell {
+        width: min(1400px, calc(100vw - 72px));
+        min-height: calc(100vh - 72px);
+        margin: 0 auto;
+        border: 1px solid rgba(95, 170, 128, 0.24);
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(8, 31, 22, 0.74), rgba(10, 37, 27, 0.92));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 28px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand img {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+      }
+
+      .brand-copy strong {
+        display: block;
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .brand-copy span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .slide-tag {
+        color: var(--amber);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 34px;
+        padding: 18px 28px 30px;
+        align-items: center;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        line-height: 1.02;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(54px, 7vw, 92px);
+        max-width: 10ch;
+      }
+
+      h2 {
+        font-size: clamp(42px, 5vw, 66px);
+        max-width: 11ch;
+      }
+
+      .lead {
+        margin-top: 18px;
+        max-width: 60ch;
+        font-size: clamp(20px, 2.1vw, 28px);
+        color: #e4f4e8;
+      }
+
+      .sublead {
+        margin-top: 12px;
+        max-width: 60ch;
+        font-size: 19px;
+        color: var(--muted);
+      }
+
+      .accent {
+        color: var(--amber);
+      }
+
+      .stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .signal {
+        padding: 22px 22px 20px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid rgba(95, 170, 128, 0.24);
+      }
+
+      .signal strong {
+        display: block;
+        font-size: 15px;
+        color: var(--amber);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 12px;
+      }
+
+      .signal p {
+        margin: 0;
+        font-size: 26px;
+      }
+
+      .signal small {
+        display: block;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .mascot-panel {
+        position: relative;
+        min-height: 480px;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at top left, rgba(52, 211, 153, 0.24), transparent 28%),
+          linear-gradient(180deg, rgba(14, 55, 38, 0.9), rgba(8, 28, 20, 0.98));
+        border: 1px solid rgba(108, 186, 142, 0.24);
+        overflow: hidden;
+      }
+
+      .mascot-panel img {
+        position: absolute;
+        right: -8px;
+        bottom: -4px;
+        width: min(100%, 520px);
+        max-width: 74%;
+        filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.35));
+      }
+
+      .pill-row {
+        position: absolute;
+        left: 24px;
+        top: 24px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        max-width: 70%;
+      }
+
+      .pill {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(6, 20, 14, 0.56);
+        border: 1px solid rgba(101, 181, 135, 0.24);
+        font-size: 14px;
+      }
+
+      .closing {
+        position: absolute;
+        left: 24px;
+        bottom: 28px;
+        max-width: 52%;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .flow {
+        flex: 1;
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 16px;
+        padding: 18px 28px 30px;
+      }
+
+      .flow-copy {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 28px;
+        align-items: start;
+      }
+
+      .flow-copy p {
+        margin: 0;
+        font-size: 21px;
+        color: #e2f2e7;
+      }
+
+      .takeaways {
+        display: grid;
+        gap: 10px;
+      }
+
+      .takeaways div {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid rgba(95, 170, 128, 0.24);
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .diagram {
+        min-height: 0;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(95, 170, 128, 0.24);
+        background: var(--panel-strong);
+      }
+
+      .diagram img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .footer-note {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 18px;
+        align-items: center;
+        padding: 16px 20px;
+        border-radius: 18px;
+        background: rgba(6, 20, 14, 0.56);
+        border: 1px solid rgba(95, 170, 128, 0.24);
+      }
+
+      .footer-note strong {
+        color: var(--amber);
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .footer-note span {
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .time {
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(245, 158, 11, 0.14);
+        color: #ffd98f;
+        font-size: 16px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 1100px) {
+        .hero,
+        .flow-copy {
+          grid-template-columns: 1fr;
+        }
+
+        .mascot-panel {
+          min-height: 360px;
+        }
+
+        .closing {
+          max-width: 60%;
+          font-size: 21px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        nav {
+          top: 154px;
+          right: 12px;
+          left: 12px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        nav a {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+
+        .slide {
+          padding: 186px 12px 12px;
+        }
+
+        .shell {
+          width: 100%;
+          min-height: calc(100vh - 84px);
+          border-radius: 20px;
+        }
+
+        .header,
+        .hero,
+        .flow {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+
+        .brand img {
+          width: 44px;
+          height: 44px;
+        }
+
+        .lead {
+          font-size: 18px;
+        }
+
+        .sublead,
+        .flow-copy p {
+          font-size: 17px;
+        }
+
+        .signal p {
+          font-size: 22px;
+        }
+
+        .pill-row,
+        .closing {
+          max-width: calc(100% - 36px);
+        }
+
+        .closing {
+          font-size: 18px;
+        }
+
+        .footer-note {
+          grid-template-columns: 1fr;
+        }
+
+        .deck-controls {
+          top: 12px;
+          left: 12px;
+          right: 12px;
+          width: auto;
+        }
+
+        .timer-value {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck-controls" aria-label="Controles de presentacion">
+      <div class="timer-row">
+        <div class="timer-copy">
+          <strong>Pitch 3:00</strong>
+          <span id="slide-status">Slide 1 de 3 · 1:00 por slide</span>
+        </div>
+        <div class="timer-value" id="timer">03:00</div>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div class="control-row">
+        <button class="primary" id="start-btn" type="button">Start</button>
+        <button id="pause-btn" type="button">Pause</button>
+        <button id="reset-btn" type="button">Reset</button>
+      </div>
+    </div>
+
+    <nav>
+      <a href="#slide-1">Slide 1</a>
+      <a href="#slide-2">Slide 2</a>
+      <a href="#slide-3">Slide 3</a>
+    </nav>
+
+    <section class="slide" id="slide-1">
+      <div class="shell">
+        <div class="header">
+          <div class="brand">
+            <img src="./assets/pitch-mascot.png" alt="Repartija" />
+            <div class="brand-copy">
+              <strong>Repartija</strong>
+              <span>Pitch de producto | vision de revenue</span>
+            </div>
+          </div>
+          <div class="slide-tag">Slide 1 · Tesis</div>
+        </div>
+
+        <div class="hero">
+          <div>
+            <h1>De app gratis a infraestructura de pago para restaurantes.</h1>
+            <p class="lead">
+              Hoy resolvemos el momento mas incomodo de la mesa: <span class="accent">dividir la cuenta</span>.
+              La siguiente etapa nos lleva un paso mas cerca de la transaccion.
+            </p>
+            <p class="sublead">
+              Entramos sin friccion con una utilidad viral. Escalamos integrando la mesa del restaurant,
+              eliminando la carga manual y cobrando una pequena comision por cada pago procesado.
+            </p>
+            <div class="stack" style="margin-top: 26px;">
+              <div class="signal">
+                <strong>Wedge</strong>
+                <p>Producto gratuito para adopcion rapida.</p>
+                <small>La propuesta inicial no exige cambio de habito ni costo de entrada.</small>
+              </div>
+              <div class="signal">
+                <strong>Siguiente etapa</strong>
+                <p>QR de mesa + APIs del restaurant + checkout integrado.</p>
+                <small>El flujo deja de empezar en el ticket y empieza en la mesa viva.</small>
+              </div>
+              <div class="signal">
+                <strong>Revenue</strong>
+                <p>Apple Pay y Google Pay para enviar el dinero al restaurant.</p>
+                <small>Repartija retiene una pequena comision sobre la transaccion.</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="mascot-panel">
+            <div class="pill-row">
+              <div class="pill">Gratis para entrar al mercado</div>
+              <div class="pill">Menos friccion para el cliente</div>
+              <div class="pill">Mejor cierre para el restaurant</div>
+            </div>
+            <div class="closing">
+              No cambiamos de problema para crecer. <br />
+              Cambiamos de posicion dentro de la misma transaccion.
+            </div>
+            <img src="./assets/pitch-mascot.png" alt="Mascota Repartija" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2">
+      <div class="shell">
+        <div class="header">
+          <div class="brand">
+            <img src="./assets/pitch-mascot.png" alt="Repartija" />
+            <div class="brand-copy">
+              <strong>Happy path actual</strong>
+              <span>Validamos el comportamiento, no el cobro</span>
+            </div>
+          </div>
+          <div class="slide-tag">Slide 2 · Hoy</div>
+        </div>
+
+        <div class="flow">
+          <h2>El usuario ya entiende el valor. El cuello de botella sigue siendo el ticket.</h2>
+          <div class="flow-copy">
+            <p>
+              Hoy Repartija funciona como una capa colaborativa para repartir una cuenta:
+              el grupo sube el ticket con OCR o carga manual, entra a una mesa compartida,
+              marca consumos y obtiene un split final en segundos.
+            </p>
+            <div class="takeaways">
+              <div>La dinamica social ya esta validada: cada persona reclama lo suyo sin drama.</div>
+              <div>La friccion aparece tarde: ticket, correcciones y pago fuera de la app.</div>
+              <div>Hay valor de uso, pero todavia no hay captura del momento de pago.</div>
+            </div>
+          </div>
+          <div class="diagram">
+            <img src="./assets/pitch-current-flow.svg" alt="Flujo actual de Repartija" />
+          </div>
+          <div class="footer-note">
+            <div>
+              <strong>Lectura de negocio</strong>
+              <span>Ya ganamos el derecho a estar en la mesa. El siguiente paso es ganar el derecho a cobrar.</span>
+            </div>
+            <div class="time">45 segundos</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3">
+      <div class="shell">
+        <div class="header">
+          <div class="brand">
+            <img src="./assets/pitch-mascot.png" alt="Repartija" />
+            <div class="brand-copy">
+              <strong>Siguiente etapa</strong>
+              <span>Mesa conectada y revenue transaccional</span>
+            </div>
+          </div>
+          <div class="slide-tag">Slide 3 · Luego</div>
+        </div>
+
+        <div class="flow">
+          <h2>Pasamos de dividir la cuenta a operar la experiencia de pago de la mesa.</h2>
+          <div class="flow-copy">
+            <p>
+              El cliente escanea un QR o ingresa la mesa. Repartija consulta por API al sistema del
+              restaurant, trae automaticamente los items abiertos y deja que cada comensal marque su
+              consumo antes de pagar dentro de la app.
+            </p>
+            <div class="takeaways">
+              <div>Sin carga manual y sin OCR: la informacion llega directo desde el restaurant.</div>
+              <div>Apple Pay y Google Pay reducen abandono y aceleran el cierre de mesa.</div>
+              <div>La app sigue siendo gratuita; el revenue nace de una pequena comision.</div>
+            </div>
+          </div>
+          <div class="diagram">
+            <img src="./assets/pitch-future-flow.svg" alt="Flujo futuro de Repartija integrado con restaurantes" />
+          </div>
+          <div class="footer-note">
+            <div>
+              <strong>Lectura de negocio</strong>
+              <span>La misma experiencia que hoy genera adopcion se convierte en una pasarela de pago embebida para restaurantes.</span>
+            </div>
+            <div class="time">55 segundos</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const totalMs = 3 * 60 * 1000;
+        const slides = Array.from(document.querySelectorAll(".slide"));
+        const timerEl = document.getElementById("timer");
+        const progressEl = document.getElementById("progress-bar");
+        const statusEl = document.getElementById("slide-status");
+        const startBtn = document.getElementById("start-btn");
+        const pauseBtn = document.getElementById("pause-btn");
+        const resetBtn = document.getElementById("reset-btn");
+        const slideMs = totalMs / slides.length;
+
+        let rafId = 0;
+        let startedAt = 0;
+        let carriedMs = 0;
+        let running = false;
+        let activeSlide = 0;
+
+        function formatMs(ms) {
+          const safe = Math.max(0, Math.ceil(ms / 1000));
+          const minutes = String(Math.floor(safe / 60)).padStart(2, "0");
+          const seconds = String(safe % 60).padStart(2, "0");
+          return `${minutes}:${seconds}`;
+        }
+
+        function clampElapsed(ms) {
+          return Math.max(0, Math.min(totalMs, ms));
+        }
+
+        function setSlide(index, behavior = "smooth") {
+          const next = Math.max(0, Math.min(slides.length - 1, index));
+          const changed = next !== activeSlide;
+          activeSlide = next;
+          carriedMs = next * slideMs;
+          if (running) {
+            startedAt = performance.now();
+          }
+          render(carriedMs);
+          if (!changed) return;
+          if (history.replaceState) {
+            history.replaceState(null, "", `#${slides[next].id}`);
+          }
+          slides[next].scrollIntoView({ behavior, block: "start" });
+        }
+
+        function render(elapsedMs) {
+          const elapsed = clampElapsed(elapsedMs);
+          const remaining = totalMs - elapsed;
+          const slideIndex = Math.min(slides.length - 1, Math.floor(elapsed / slideMs));
+
+          timerEl.textContent = formatMs(remaining);
+          progressEl.style.width = `${(elapsed / totalMs) * 100}%`;
+          statusEl.textContent = `Slide ${slideIndex + 1} de ${slides.length} · 1:00 por slide`;
+
+          if (slideIndex !== activeSlide) {
+            activeSlide = slideIndex;
+            slides[slideIndex].scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+
+          if (elapsed >= totalMs && running) {
+            pause();
+          }
+        }
+
+        function tick(now) {
+          const elapsed = carriedMs + (now - startedAt);
+          render(elapsed);
+          if (elapsed < totalMs && running) {
+            rafId = requestAnimationFrame(tick);
+          }
+        }
+
+        function start() {
+          if (running) return;
+          running = true;
+          startedAt = performance.now();
+          startBtn.textContent = "Running";
+          rafId = requestAnimationFrame(tick);
+        }
+
+        function pause() {
+          if (!running) return;
+          running = false;
+          carriedMs = clampElapsed(carriedMs + (performance.now() - startedAt));
+          cancelAnimationFrame(rafId);
+          startBtn.textContent = carriedMs >= totalMs ? "Restart" : "Start";
+        }
+
+        function reset() {
+          running = false;
+          carriedMs = 0;
+          cancelAnimationFrame(rafId);
+          activeSlide = 0;
+          timerEl.textContent = "03:00";
+          progressEl.style.width = "0%";
+          statusEl.textContent = `Slide 1 de ${slides.length} · 1:00 por slide`;
+          slides[0].scrollIntoView({ behavior: "smooth", block: "start" });
+          startBtn.textContent = "Start";
+        }
+
+        startBtn.addEventListener("click", () => {
+          if (carriedMs >= totalMs) {
+            reset();
+          }
+          start();
+        });
+        pauseBtn.addEventListener("click", pause);
+        resetBtn.addEventListener("click", reset);
+
+        document.addEventListener("keydown", (event) => {
+          if (event.code === "Space") {
+            event.preventDefault();
+            if (running) pause();
+            else start();
+          }
+          if (event.key.toLowerCase() === "r") reset();
+          if (event.key === "ArrowDown" || event.key === "PageDown") {
+            event.preventDefault();
+            setSlide(activeSlide + 1);
+          }
+          if (event.key === "ArrowUp" || event.key === "PageUp") {
+            event.preventDefault();
+            setSlide(activeSlide - 1);
+          }
+        });
+
+        window.addEventListener("hashchange", () => {
+          const index = slides.findIndex((slide) => `#${slide.id}` === window.location.hash);
+          if (index >= 0) {
+            activeSlide = index;
+            carriedMs = index * slideMs;
+            if (running) {
+              startedAt = performance.now();
+            }
+            render(carriedMs);
+          }
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        render(0);
+        if (params.get("autostart") === "1") {
+          setTimeout(() => start(), 500);
+        }
+      })();
+    </script>
+  </body>
+</html>
