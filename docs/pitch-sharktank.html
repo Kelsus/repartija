@@ -65,8 +65,13 @@
       }
 
       body.panel-collapsed .deck-controls {
-        width: auto;
-        min-width: 230px;
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
       }
 
       .controls-top {
@@ -142,6 +147,7 @@
         gap: 12px;
       }
 
+      body.panel-collapsed .controls-top,
       body.panel-collapsed .controls-body {
         display: none;
       }
@@ -156,6 +162,18 @@
 
       body.panel-collapsed .collapsed-bar {
         display: flex;
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 14;
+        min-width: 240px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(7, 22, 16, 0.92);
+        border: 1px solid rgba(126, 208, 161, 0.36);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+        backdrop-filter: blur(16px);
       }
 
       .collapsed-meta {
@@ -172,6 +190,10 @@
       .collapsed-actions {
         display: inline-flex;
         gap: 8px;
+      }
+
+      body.panel-collapsed nav {
+        top: 78px;
       }
 
       .timer-value {
@@ -382,8 +404,8 @@
       }
 
       h2 {
-        font-size: clamp(calc(34px * var(--font-scale)), calc(4.7vw * var(--font-scale)), calc(58px * var(--font-scale)));
-        max-width: 14ch;
+        font-size: clamp(calc(30px * var(--font-scale)), calc(4vw * var(--font-scale)), calc(50px * var(--font-scale)));
+        max-width: 16ch;
       }
 
       .lead {
@@ -502,9 +524,9 @@
       .flow {
         flex: 1;
         display: grid;
-        grid-template-rows: auto auto minmax(320px, 1fr) auto;
-        gap: 16px;
-        padding: 18px 28px 30px;
+        grid-template-rows: auto auto minmax(280px, 1fr) auto;
+        gap: 14px;
+        padding: 16px 28px 24px;
       }
 
       .flow-copy {
@@ -516,9 +538,9 @@
 
       .flow-copy p {
         margin: 0;
-        font-size: calc(20px * var(--font-scale));
+        font-size: calc(18px * var(--font-scale));
         color: #e2f2e7;
-        line-height: 1.38;
+        line-height: 1.34;
       }
 
       .takeaways {
@@ -527,13 +549,13 @@
       }
 
       .takeaways div {
-        padding: 14px 16px;
+        padding: 12px 14px;
         border-radius: 16px;
         background: var(--panel);
         border: 1px solid rgba(95, 170, 128, 0.24);
         color: var(--muted);
-        font-size: calc(16px * var(--font-scale));
-        line-height: 1.35;
+        font-size: calc(15px * var(--font-scale));
+        line-height: 1.32;
       }
 
       .diagram {
@@ -544,14 +566,14 @@
         background: var(--panel-strong);
         display: grid;
         place-items: center;
-        padding: 18px;
+        padding: 12px;
       }
 
       .diagram img {
         display: block;
         width: 100%;
         height: 100%;
-        max-height: 100%;
+        max-height: min(40vh, 360px);
         object-fit: contain;
       }
 
@@ -576,6 +598,7 @@
       .footer-note span {
         color: var(--muted);
         font-size: calc(15px * var(--font-scale));
+        line-height: 1.3;
       }
 
       .time {
@@ -676,6 +699,12 @@
           font-size: 28px;
         }
 
+        body.panel-collapsed .collapsed-bar {
+          top: 12px;
+          min-width: 220px;
+          max-width: calc(100vw - 24px);
+        }
+
         .control-row.tight {
           gap: 10px;
           justify-content: stretch;
@@ -684,6 +713,57 @@
         .control-group {
           width: 100%;
           justify-content: center;
+        }
+      }
+
+      @media (max-height: 920px) {
+        .slide {
+          padding: 22px;
+        }
+
+        .shell {
+          min-height: calc(100vh - 44px);
+        }
+
+        h1 {
+          font-size: clamp(calc(38px * var(--font-scale)), calc(5vw * var(--font-scale)), calc(64px * var(--font-scale)));
+        }
+
+        h2 {
+          font-size: clamp(calc(26px * var(--font-scale)), calc(3.2vw * var(--font-scale)), calc(40px * var(--font-scale)));
+        }
+
+        .lead,
+        .sublead,
+        .flow-copy p {
+          font-size: calc(16px * var(--font-scale));
+        }
+
+        .signal p {
+          font-size: calc(18px * var(--font-scale));
+        }
+
+        .signal small,
+        .takeaways div,
+        .footer-note span,
+        .time {
+          font-size: calc(13px * var(--font-scale));
+        }
+
+        .header,
+        .hero,
+        .flow {
+          padding-left: 22px;
+          padding-right: 22px;
+        }
+
+        .hero,
+        .flow {
+          gap: 12px;
+        }
+
+        .diagram img {
+          max-height: min(33vh, 300px);
         }
       }
     </style>
@@ -907,7 +987,7 @@
         const collapseBtn = document.getElementById("collapse-btn");
         const expandBtn = document.getElementById("expand-btn");
         const slideMs = totalMs / slides.length;
-        const minScale = 0.85;
+        const minScale = 0.6;
         const maxScale = 1.25;
         const defaultScale = 1;
 
