@@ -469,11 +469,11 @@
         font-size: calc(15px * var(--font-scale));
       }
 
-      .mascot-panel {
+      .thesis-panel {
         display: grid;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: auto auto 1fr auto;
         align-items: start;
-        gap: 18px;
+        gap: 16px;
         min-height: 100%;
         border-radius: 24px;
         background:
@@ -499,25 +499,47 @@
         font-size: calc(13px * var(--font-scale));
       }
 
-      .mascot-figure {
-        min-height: 260px;
-        display: grid;
-        place-items: center;
-        padding: 12px 0 6px;
+      .thesis-kicker {
+        font-size: calc(18px * var(--font-scale));
+        line-height: 1.28;
+        color: #e3f4e8;
+        max-width: 26ch;
       }
 
-      .mascot-figure img {
-        width: min(100%, 440px);
-        max-height: min(42vh, 420px);
-        object-fit: contain;
-        filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.35));
+      .thesis-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .thesis-item {
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(6, 20, 14, 0.48);
+        border: 1px solid rgba(126, 208, 161, 0.2);
+      }
+
+      .thesis-item strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--amber);
+        font-size: calc(13px * var(--font-scale));
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .thesis-item p {
+        margin: 0;
+        color: #eff8f2;
+        font-size: calc(19px * var(--font-scale));
+        line-height: 1.2;
+        text-wrap: balance;
       }
 
       .closing {
-        max-width: 24ch;
-        font-size: calc(24px * var(--font-scale));
-        font-weight: 600;
-        line-height: 1.16;
+        max-width: 22ch;
+        font-size: calc(22px * var(--font-scale));
+        font-weight: 650;
+        line-height: 1.14;
         text-wrap: balance;
       }
 
@@ -617,16 +639,12 @@
           grid-template-columns: 1fr;
         }
 
-        .mascot-panel {
+        .thesis-panel {
           min-height: 0;
         }
 
         .closing {
           max-width: none;
-        }
-
-        .mascot-figure img {
-          max-height: min(36vh, 340px);
         }
       }
 
@@ -750,6 +768,11 @@
           font-size: calc(13px * var(--font-scale));
         }
 
+        .thesis-item p,
+        .thesis-kicker {
+          font-size: calc(15px * var(--font-scale));
+        }
+
         .header,
         .hero,
         .flow {
@@ -868,18 +891,28 @@
             </div>
           </div>
 
-          <div class="mascot-panel">
+          <div class="thesis-panel">
             <div class="pill-row">
               <div class="pill">Gratis para entrar al mercado</div>
               <div class="pill">Menos friccion para el grupo</div>
               <div class="pill">Mejor cierre de mesa</div>
             </div>
-            <div class="mascot-figure">
-              <img src="./assets/pitch-mascot.png" alt="Mascota Repartija" />
+            <div class="thesis-kicker">
+              Repartija ordena el final de la experiencia: menos cuentas mentales, menos espera y menos incomodidad al pagar.
+            </div>
+            <div class="thesis-grid">
+              <div class="thesis-item">
+                <strong>Hoy</strong>
+                <p>La mesa entiende rapido quien consume que.</p>
+              </div>
+              <div class="thesis-item">
+                <strong>Luego</strong>
+                <p>La misma mesa divide y paga sin frenar la salida.</p>
+              </div>
             </div>
             <div class="closing">
-              El problema no es dividir. <br />
-              El problema es cerrar bien la mesa.
+              Dividir bien la cuenta es el primer paso. <br />
+              Terminar bien la mesa es el negocio.
             </div>
           </div>
         </div>
@@ -903,13 +936,12 @@
           <h2>Hoy ya resolvemos el dolor principal: saber cuanto le toca a cada uno.</h2>
           <div class="flow-copy">
             <p>
-              El producto ya demuestra algo importante: cuando la cuenta se vuelve compartida,
-              las personas quieren una forma simple, visual y colaborativa de dividir y pagar sin discutir.
+              Cuando la cuenta es compartida, la gente quiere ver rapido cuanto le toca y resolverlo sin conversar de mas.
             </p>
             <div class="takeaways">
-              <div>La dinamica social ya esta validada: cada persona identifica lo suyo rapido.</div>
-              <div>Repartija baja tension en el momento mas sensible: dividir la cuenta y pagarla.</div>
-              <div>El siguiente salto es hacer que cerrar la mesa sea tan facil como repartirla.</div>
+              <div>Cada persona identifica lo suyo en segundos.</div>
+              <div>La friccion baja justo cuando llega la cuenta.</div>
+              <div>Hoy el pago todavia se resuelve por afuera.</div>
             </div>
           </div>
           <div class="diagram">
@@ -918,7 +950,7 @@
           <div class="footer-note">
             <div>
               <strong>Lectura de producto</strong>
-              <span>Ya ganamos el derecho a participar del cierre de la mesa. Ahora toca simplificarlo de punta a punta.</span>
+              <span>El uso ya esta validado. Falta capturar el momento final del pago.</span>
             </div>
             <div class="time">45 segundos</div>
           </div>
@@ -943,13 +975,12 @@
           <h2>La siguiente etapa elimina la ultima friccion: esperar al mozo para cerrar la mesa.</h2>
           <div class="flow-copy">
             <p>
-              La experiencia ideal es simple: cada persona escanea la mesa, elige lo que consumio,
-              paga su parte desde el celular y se va sin llamar al mozo ni esperar el cierre manual.
+              La experiencia ideal es simple: escanear la mesa, elegir consumo, pagar en el celular y salir sin llamar al mozo.
             </p>
             <div class="takeaways">
-              <div>Menos espera, menos confusiones y menos friccion justo al dividir la cuenta y pagar.</div>
-              <div>Cuando toda la mesa queda saldada, Repartija notifica al restaurant y habilita la salida.</div>
-              <div>Para el local es una operacion mas liviana; para el usuario, una salida mas rapida y natural.</div>
+              <div>La cuenta ya aparece lista para cerrar.</div>
+              <div>Cuando todos pagan, el local queda notificado.</div>
+              <div>Menos espera para el comensal, menos carga operativa para el restaurant.</div>
             </div>
           </div>
           <div class="diagram">
@@ -958,7 +989,7 @@
           <div class="footer-note">
             <div>
               <strong>Lectura de producto</strong>
-              <span>La misma experiencia que hoy ordena la cuenta puede transformarse en la forma mas rapida de dividirla, pagarla y terminar la mesa.</span>
+              <span>La misma experiencia que hoy ordena la cuenta puede convertirse en la forma mas rapida de cerrarla.</span>
             </div>
             <div class="time">55 segundos</div>
           </div>
