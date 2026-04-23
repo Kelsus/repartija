@@ -17,20 +17,27 @@ export default function Home() {
   const [name, setName] = useState(getSavedName());
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   const saved = getSavedPayTarget();
   const [identifier, setIdentifier] = useState(saved?.identifier ?? '');
 
   async function createSession(e: React.FormEvent) {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setCreateError('Ingresá tu nombre para crear la mesa.');
+      return;
+    }
     setLoading(true);
-    setError(null);
+    setCreateError(null);
     try {
       const id = identifier.trim();
-      const paymentTarget = id ? { identifier: id, label: name.trim() || 'Host' } : null;
+      const paymentTarget = id ? { identifier: id, label: trimmedName } : null;
       const paymentMode = paymentTarget ? 'host' : 'cash';
 
+      saveName(trimmedName);
       const res = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,11 +50,10 @@ export default function Home() {
       if (!res.ok) throw new Error('No se pudo crear la sesión');
       const data = (await res.json()) as { code: string; hostToken: string };
       saveHostToken(data.code, data.hostToken);
-      if (name.trim()) saveName(name.trim());
       savePayTarget(paymentTarget);
       setLocation(`/s/${data.code}`);
     } catch (err) {
-      setError((err as Error).message);
+      setCreateError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -55,9 +61,18 @@ export default function Home() {
 
   function join(e: React.FormEvent) {
     e.preventDefault();
+    const trimmedName = name.trim();
     const code = joinCode.trim().toUpperCase();
-    if (!code) return;
-    if (name.trim()) saveName(name.trim());
+    if (!trimmedName) {
+      setJoinError('Ingresá tu nombre para unirte a la mesa.');
+      return;
+    }
+    if (!code) {
+      setJoinError('Ingresá el código de la mesa.');
+      return;
+    }
+    setJoinError(null);
+    saveName(trimmedName);
     setLocation(`/s/${code}`);
   }
 
@@ -119,10 +134,14 @@ export default function Home() {
                 <Input
                   id="create-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (createError) setCreateError(null);
+                  }}
                   onFocus={() => setMode('create')}
                   placeholder="ej. Juan"
                   maxLength={40}
+                  autoComplete="name"
                 />
               </div>
 
@@ -167,9 +186,9 @@ export default function Home() {
                 {loading ? 'Creando…' : 'Crear mesa'}
               </Button>
 
-              {error && (
+              {createError && (
                 <p className="text-sm text-destructive text-center" role="alert">
-                  {error}
+                  {createError}
                 </p>
               )}
             </form>
@@ -193,10 +212,14 @@ export default function Home() {
                 <Input
                   id="join-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (joinError) setJoinError(null);
+                  }}
                   onFocus={() => setMode('join')}
                   placeholder="ej. Ana"
                   maxLength={40}
+                  autoComplete="name"
                 />
               </div>
 
@@ -205,7 +228,10 @@ export default function Home() {
                 <Input
                   id="join-code"
                   value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    setJoinCode(e.target.value.toUpperCase());
+                    if (joinError) setJoinError(null);
+                  }}
                   onFocus={() => setMode('join')}
                   placeholder="ABC123"
                   maxLength={8}
@@ -219,6 +245,12 @@ export default function Home() {
               <Button type="submit" variant="secondary" size="lg" className="w-full">
                 Entrar
               </Button>
+
+              {joinError && (
+                <p className="text-sm text-destructive text-center" role="alert">
+                  {joinError}
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>
