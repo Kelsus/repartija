@@ -477,11 +477,25 @@ function SessionView({
             })
             .map((p) => {
               const isMe = p.id === participantId;
+              const participant = state.participants.find((pp) => pp.id === p.id);
+              const status = participant?.paymentStatus ?? 'pending';
+              const showStatus = state.closed && p.totalCents > 0;
               return (
-                <li key={p.id} className={isMe ? 'me' : ''}>
+                <li
+                  key={p.id}
+                  className={[isMe ? 'me' : '', showStatus ? `pay-${status}` : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                >
                   <span className="totals-name">
                     {p.name}
                     {isMe && <span className="chip-me">vos</span>}
+                    {showStatus && (
+                      <span className={`totals-pay-badge pay-${status}`}>
+                        {payStatusIcon(status)}
+                        <span>{payStatusShort(status)}</span>
+                      </span>
+                    )}
                   </span>
                   <span className="totals-amount">{formatMoney(p.totalCents, state.currency)}</span>
                 </li>
@@ -535,6 +549,30 @@ function SessionView({
             </div>
           </div>
         )}
+
+        {state.closed &&
+          totals.grandCents > 0 &&
+          totals.pendingCents === 0 &&
+          totals.unassignedCents === 0 && (
+            <div className="all-paid-summary" role="status">
+              <div className="all-paid-head">
+                <IconCheck size={16} />
+                <strong>¡Todos pagaron!</strong>
+                <span>{formatMoney(totals.grandCents, state.currency)}</span>
+              </div>
+              <ul className="all-paid-list">
+                {totals.perPerson
+                  .filter((p) => p.totalCents > 0)
+                  .sort((a, b) => b.totalCents - a.totalCents)
+                  .map((p) => (
+                    <li key={p.id}>
+                      <span>{p.name}</span>
+                      <strong>{formatMoney(p.totalCents, state.currency)}</strong>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
       </section>
 
       {(() => {
@@ -644,6 +682,15 @@ function payStatusLabel(s: PaymentStatus, online: boolean): string {
     case 'intent_cash': return `${base} · Va a pagar en efectivo`;
     case 'intent_link': return `${base} · Abrió el link de pago`;
     default: return base;
+  }
+}
+
+function payStatusShort(s: PaymentStatus): string {
+  switch (s) {
+    case 'paid': return 'Pagó';
+    case 'intent_cash': return 'Efectivo';
+    case 'intent_link': return 'Link';
+    default: return 'Pendiente';
   }
 }
 

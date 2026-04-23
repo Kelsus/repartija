@@ -95,9 +95,12 @@ test('demo video: 3 personas, flujo completo', async ({ browser }) => {
   await beto.getByRole('button', { name: /^Pagué$/ }).click();
   await beat(2500);
 
-  // Snapshot de host con todos pagos confirmados — se usa como frame de cierre.
-  await host.evaluate(() => window.scrollTo({ top: 0 }));
-  await beat(400);
+  // Snapshot de host con todos pagos confirmados — enfoca el resumen final
+  // "¡Todos pagaron!" para usarlo como frame de cierre del video.
+  const summary = host.locator('.all-paid-summary');
+  await expect(summary).toBeVisible();
+  await summary.scrollIntoViewIfNeeded();
+  await beat(600);
   await host.screenshot({
     path: path.join(OUT_DIR, 'host-final.png'),
     fullPage: false
