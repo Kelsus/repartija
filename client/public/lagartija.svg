@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" fill="none">
+  <defs>
+    <linearGradient id="lagBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="55%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+    <linearGradient id="lagBelly" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#lagBody)" d="
+      M 40 270
+      C 80 230, 140 210, 210 220
+      C 270 228, 320 248, 380 262
+      C 440 272, 500 270, 560 280
+      C 620 292, 680 310, 720 296
+      C 760 282, 790 254, 780 236
+      C 760 210, 720 228, 700 244
+      C 678 258, 650 256, 620 250
+      C 550 232, 488 214, 422 206
+      C 340 196, 254 190, 180 210
+      C 130 222, 88 240, 54 252
+      Z" />
+    <path fill="url(#lagBelly)" opacity="0.65" d="
+      M 90 278
+      C 150 262, 220 258, 300 268
+      C 380 278, 460 288, 540 290
+      C 600 292, 660 296, 700 290
+      L 680 310
+      C 620 322, 540 318, 460 308
+      C 360 296, 260 288, 180 296
+      C 130 302, 100 298, 90 290 Z" />
+    <!-- Spikes along the back -->
+    <g fill="#065f46" opacity="0.85">
+      <path d="M160 214 l10 -16 l10 16 Z"/>
+      <path d="M220 210 l9 -14 l9 14 Z"/>
+      <path d="M280 212 l9 -14 l9 14 Z"/>
+      <path d="M340 216 l9 -14 l9 14 Z"/>
+      <path d="M400 220 l9 -14 l9 14 Z"/>
+      <path d="M460 224 l9 -14 l9 14 Z"/>
+      <path d="M520 234 l9 -14 l9 14 Z"/>
+      <path d="M580 252 l9 -14 l9 14 Z"/>
+    </g>
+    <!-- Front legs -->
+    <path fill="url(#lagBody)" d="
+      M 180 280
+      C 170 320, 160 360, 180 400
+      C 190 410, 210 412, 220 396
+      C 214 380, 210 360, 214 340
+      C 218 320, 230 304, 240 288
+      Z" />
+    <path fill="#065f46" opacity="0.8" d="M192 398 q8 8 24 8 l-2 8 q-16 2 -24 -4 z"/>
+    <path fill="url(#lagBody)" d="
+      M 300 286
+      C 296 324, 292 368, 316 404
+      C 326 414, 346 414, 354 400
+      C 348 384, 342 364, 348 344
+      C 352 326, 366 310, 374 296
+      Z" />
+    <path fill="#065f46" opacity="0.8" d="M326 404 q10 8 26 6 l-2 9 q-18 2 -26 -6z"/>
+    <!-- Back legs -->
+    <path fill="url(#lagBody)" d="
+      M 440 280
+      C 434 320, 430 360, 452 402
+      C 464 414, 484 414, 490 398
+      C 484 380, 480 360, 488 340
+      C 494 322, 508 306, 514 292
+      Z" />
+    <path fill="#065f46" opacity="0.8" d="M462 404 q8 8 26 6 l-2 10 q-18 0 -26 -6z"/>
+    <path fill="url(#lagBody)" d="
+      M 560 286
+      C 554 320, 552 358, 572 392
+      C 584 404, 604 404, 610 388
+      C 602 370, 600 350, 608 332
+      C 614 318, 628 304, 634 292
+      Z" />
+    <path fill="#065f46" opacity="0.8" d="M582 394 q8 8 26 6 l-2 10 q-20 0 -26 -6z"/>
+    <!-- Eye -->
+    <circle cx="64" cy="256" r="10" fill="#fde047"/>
+    <circle cx="64" cy="256" r="4" fill="#052e16"/>
+    <!-- Nostril -->
+    <circle cx="42" cy="264" r="3" fill="#065f46" opacity="0.6"/>
+    <!-- Mouth -->
+    <path d="M38 276 Q 60 282 82 276" stroke="#052e16" stroke-width="2" fill="none" opacity="0.55"/>
+    <!-- Tongue (animated) -->
+    <path id="tongue" d="M38 276 Q 28 280 24 278 Q 20 276 22 272 L 16 272 L 18 278 L 14 282"
+          stroke="#e11d48" stroke-width="2" fill="none" stroke-linecap="round"
+          opacity="0">
+      <animate attributeName="opacity"
+               values="0;0;1;1;0;0"
+               keyTimes="0;0.75;0.80;0.90;0.95;1"
+               dur="6s" repeatCount="indefinite" />
+    </path>
+    <!-- Scales dots -->
+    <g fill="#065f46" opacity="0.4">
+      <circle cx="220" cy="240" r="4"/>
+      <circle cx="280" cy="244" r="4"/>
+      <circle cx="340" cy="250" r="4"/>
+      <circle cx="400" cy="256" r="4"/>
+      <circle cx="460" cy="262" r="4"/>
+      <circle cx="520" cy="270" r="4"/>
+      <circle cx="580" cy="276" r="4"/>
+      <circle cx="640" cy="278" r="4"/>
+    </g>
+  </g>
+</svg>
