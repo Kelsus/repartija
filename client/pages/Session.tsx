@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRoute } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { getSocket } from '../lib/socket';
 import {
   getHostToken,
@@ -172,6 +172,7 @@ function SessionView({
   setShowQR: (b: boolean) => void;
 }) {
   const socket = getSocket();
+  const [, navigate] = useLocation();
   const totals = useMemo(() => computeTotals(state), [state]);
   const myTotal = totals.perPerson.find((p) => p.id === participantId);
 
@@ -582,10 +583,15 @@ function SessionView({
               <span>Cerrar mesa</span>
             </button>
           ) : (
-            <button className="secondary" onClick={reopen}>
-              <IconUnlock size={18} />
-              <span>Reabrir mesa</span>
-            </button>
+            <>
+              <button className="secondary" onClick={reopen}>
+                <IconUnlock size={18} />
+                <span>Reabrir mesa</span>
+              </button>
+              <button className="secondary" onClick={() => navigate('/')}>
+                <span>+ Nueva mesa</span>
+              </button>
+            </>
           )}
         </section>
       )}
