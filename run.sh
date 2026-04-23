@@ -31,6 +31,9 @@ export PUBLIC_URL="http://${LAN_IP}:${CLIENT_PORT}"
 export HOST="0.0.0.0"
 export PORT CLIENT_PORT
 
+# npm run dev usa `tsx --env-file=.env`; node aborta si el archivo no existe.
+[[ -f .env ]] || touch .env
+
 cat <<INFO
 ────────────────────────────────────────────
   Repartija en red local
