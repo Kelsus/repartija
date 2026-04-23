@@ -6,6 +6,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import QRCode from 'qrcode';
 import { customAlphabet, nanoid } from 'nanoid';
 import { GoogleGenAI } from '@google/genai';
+import { createWorker, type Worker as TesseractWorker } from 'tesseract.js';
+import { parseReceiptText } from './receiptParser.ts';
 import type {
   Item,
   JoinAck,
@@ -95,12 +97,26 @@ const genai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
 
+if (!genai) {
+  console.warn('[repartija] GEMINI_API_KEY no configurada — fallback a OCR local (tesseract.js)');
+}
+
+let tesseractWorkerPromise: Promise<TesseractWorker> | null = null;
+function getTesseractWorker(): Promise<TesseractWorker> {
+  if (!tesseractWorkerPromise) {
+    tesseractWorkerPromise = createWorker(['spa', 'eng']).catch((err) => {
+      tesseractWorkerPromise = null;
+      throw err;
+    });
+  }
+  return tesseractWorkerPromise;
+}
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, sessions: sessions.size });
 });
 
 app.post('/api/receipts/parse', async (req, res) => {
-  if (!genai) return res.status(503).json({ error: 'GEMINI_API_KEY not configured' });
   const { imageBase64, mimeType } = (req.body ?? {}) as {
     imageBase64?: string;
     mimeType?: string;
@@ -110,6 +126,20 @@ app.post('/api/receipts/parse', async (req, res) => {
   }
   if (!/^image\/(png|jpe?g|webp|heic|heif)$/i.test(mimeType)) {
     return res.status(400).json({ error: 'unsupported mime type' });
+  }
+
+  if (!genai) {
+    try {
+      const worker = await getTesseractWorker();
+      const buffer = Buffer.from(imageBase64, 'base64');
+      const { data } = await worker.recognize(buffer);
+      const items = parseReceiptText(data.text ?? '').slice(0, 40);
+      res.json({ items, currency: 'XXX' });
+    } catch (err) {
+      console.error('[receipts/parse][tesseract]', err);
+      res.status(500).json({ error: (err as Error).message ?? 'ocr failed' });
+    }
+    return;
   }
 
   try {
