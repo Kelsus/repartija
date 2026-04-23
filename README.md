@@ -1,8 +1,15 @@
 # Repartija
 
-Split the check without the drama.
+> **Equipo 11 — Repartija**
+> Martín · Rodrigo · Hernán
 
-Repartija es una app para dividir cuentas en tiempo real entre varias personas. Una persona crea la mesa, comparte un QR o un codigo corto, y cada participante marca los items que le corresponden. Los totales se recalculan en vivo para todos.
+**Dividir la cuenta sin drama.**
+
+Uno en la mesa carga los ítems del ticket —a mano o con OCR— y genera un QR. Cada comensal entra desde su celu, toca lo que pidió (o lo comparte con quien corresponda) y ve **en vivo** cuánto le toca pagar. Cuando todos terminaron, se cierra la mesa y listo.
+
+Sin planilla. Sin calculadora. Sin *"¿quién pidió la pizza?"* por WhatsApp al otro día.
+
+---
 
 Desarrollado como MVP hackathon por Kelsus.
 
