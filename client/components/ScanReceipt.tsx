@@ -1,8 +1,13 @@
 import { useRef, useState } from 'react';
-import { createWorker, type Worker as TesseractWorker } from 'tesseract.js';
-import { parseReceipt, type ParsedLine } from '../lib/receiptParser';
 import { formatMoney, parsePrice } from '../lib/totals';
 import Modal from './Modal';
+
+type ParsedLine = {
+  name: string;
+  quantity: number;
+  unitPriceCents: number;
+  include: boolean;
+};
 
 type Props = {
   currency: string;
@@ -12,11 +17,22 @@ type Props = {
 
 type Phase = 'pick' | 'processing' | 'review' | 'error';
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<Phase>('pick');
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('');
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [lines, setLines] = useState<ParsedLine[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -24,33 +40,32 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
   async function handleFile(file: File) {
     setImgSrc(URL.createObjectURL(file));
     setPhase('processing');
-    setProgress(0);
-    setStatus('Cargando motor OCR…');
 
-    let worker: TesseractWorker | null = null;
     try {
-      worker = await createWorker('spa', 1, {
-        logger: (m) => {
-          if (m.status) setStatus(translateStatus(m.status));
-          if (typeof m.progress === 'number') setProgress(Math.round(m.progress * 100));
-        }
+      const imageBase64 = await fileToBase64(file);
+      const res = await fetch('/api/receipts/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64, mimeType: file.type || 'image/jpeg' })
       });
-      setStatus('Leyendo ticket…');
-      const { data } = await worker.recognize(file);
-      const parsed = parseReceipt(data.text);
-      if (parsed.length === 0) {
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as {
+        items: { name: string; quantity: number; unitPriceCents: number }[];
+      };
+      if (!data.items || data.items.length === 0) {
         setError('No encontré items en la imagen. Probá con mejor luz o cargá manualmente.');
         setPhase('error');
       } else {
-        setLines(parsed);
+        setLines(data.items.map((it) => ({ ...it, include: true })));
         setPhase('review');
       }
     } catch (err) {
       console.error(err);
       setError((err as Error).message || 'Error procesando la imagen');
       setPhase('error');
-    } finally {
-      try { await worker?.terminate(); } catch {}
     }
   }
 
@@ -87,7 +102,7 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
           <div className="scan-body">
             <p className="muted">
               En compu: abre el explorador de archivos. En celu: elegís cámara o galería desde el menú del sistema.
-              Repartija detecta los items automáticamente; el OCR corre en tu dispositivo.
+              Mandamos la imagen a Gemini para extraer los items.
             </p>
             <input
               ref={fileRef}
@@ -117,13 +132,10 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
           </div>
           <div className="scan-body">
             {imgSrc && <img src={imgSrc} alt="ticket" className="scan-preview" />}
-            <p className="muted">{status}</p>
+            <p className="muted">Analizando el ticket con Gemini…</p>
             <div className="progress">
-              <div className="progress-bar" style={{ width: `${progress}%` }} />
+              <div className="progress-bar" style={{ width: '70%' }} />
             </div>
-            <p className="muted" style={{ fontSize: 12 }}>
-              Primera vez puede tardar ~10s descargando el motor OCR.
-            </p>
           </div>
         </>
       )}
@@ -213,11 +225,4 @@ export default function ScanReceipt({ currency, onConfirm, onClose }: Props) {
       )}
     </Modal>
   );
-}
-
-function translateStatus(s: string): string {
-  if (s.includes('loading')) return 'Cargando motor OCR…';
-  if (s.includes('initializing')) return 'Inicializando…';
-  if (s.includes('recognizing text')) return 'Leyendo ticket…';
-  return s;
 }

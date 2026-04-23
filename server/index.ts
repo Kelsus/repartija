@@ -5,6 +5,7 @@ import os from 'node:os';
 import { Server as SocketIOServer } from 'socket.io';
 import QRCode from 'qrcode';
 import { customAlphabet, nanoid } from 'nanoid';
+import { GoogleGenAI } from '@google/genai';
 import type {
   Item,
   JoinAck,
@@ -88,10 +89,75 @@ function getSession(code: string): StoredSession | undefined {
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '12mb' }));
+
+const genai = process.env.GEMINI_API_KEY
+  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  : null;
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, sessions: sessions.size });
+});
+
+app.post('/api/receipts/parse', async (req, res) => {
+  if (!genai) return res.status(503).json({ error: 'GEMINI_API_KEY not configured' });
+  const { imageBase64, mimeType } = (req.body ?? {}) as {
+    imageBase64?: string;
+    mimeType?: string;
+  };
+  if (!imageBase64 || !mimeType) {
+    return res.status(400).json({ error: 'imageBase64 and mimeType are required' });
+  }
+  if (!/^image\/(png|jpe?g|webp|heic|heif)$/i.test(mimeType)) {
+    return res.status(400).json({ error: 'unsupported mime type' });
+  }
+
+  try {
+    const result = await genai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: [
+        { inlineData: { mimeType, data: imageBase64 } },
+        {
+          text:
+            'Extract line items from this restaurant/store receipt. It may be in Spanish, ' +
+            'Portuguese, or English. Return ONLY a JSON object: ' +
+            '{"items":[{"name":string,"quantity":integer>=1,"unitPriceCents":integer>=0, "totalPriceCents":integer>=0}]}. ' +
+            'unitPriceCents is the UNIT price in cents (not the line total). ' +
+            'Skip subtotals, taxes (IVA), tips (propina), totals, discounts, addresses, ' +
+            'phone numbers, thank-you lines, dates, and cashier info. ' +
+            'If you cannot read the receipt, return {"items":[]}.'
+        }
+      ],
+      config: { responseMimeType: 'application/json', temperature: 0 }
+    });
+
+    const text = result.text ?? '';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return res.status(502).json({ error: 'model returned invalid JSON', raw: text });
+    }
+
+    const rawItems =
+      parsed && typeof parsed === 'object' && Array.isArray((parsed as any).items)
+        ? ((parsed as any).items as unknown[])
+        : [];
+    const items = rawItems
+      .map((it) => {
+        const o = (it ?? {}) as Record<string, unknown>;
+        const name = (o.name ?? '').toString().trim().slice(0, 80);
+        const quantity = Math.max(1, Math.min(99, Number(o.quantity) || 1));
+        const unitPriceCents = Math.max(0, Math.round(Number(o.unitPriceCents) || 0));
+        return { name, quantity, unitPriceCents };
+      })
+      .filter((it) => it.name.length > 0);
+
+    res.json({ items });
+  } catch (err) {
+    console.error('[receipts/parse]', err);
+    res.status(500).json({ error: (err as Error).message ?? 'gemini call failed' });
+  }
 });
 
 app.post('/api/sessions', async (req, res) => {

@@ -17,8 +17,8 @@ npm run dev:server                 # server only
 npm run dev:client                 # vite only
 npm run build                      # vite build → dist/
 npm run smoke                      # playwright tests (requires dev server running)
-npx playwright test tests/parser.spec.ts            # single file
-npx playwright test tests/parser.spec.ts -g "name"  # single test by name
+npx playwright test tests/price.spec.ts             # single file
+npx playwright test tests/price.spec.ts -g "name"   # single test by name
 ./scripts/deploy.sh                # cloudflared tunnel (ngrok fallback)
 ./scripts/destroy.sh               # close tunnels + stop dev
 ```
@@ -30,6 +30,7 @@ Vite proxies `/api` and `/socket.io` to `:3001`. Playwright runs against `http:/
 - `PORT` — backend (default 3001)
 - `CLIENT_PORT` — frontend port for QR URL (default 5173)
 - `PUBLIC_URL` — overrides QR target; otherwise server auto-detects LAN IP via `os.networkInterfaces()` (prefers `en0`/`en1`/`wlan0`/`eth0`). Set this when exposing through a tunnel.
+- `GEMINI_API_KEY` — required for the receipt scanner endpoint (`POST /api/receipts/parse`). Loaded from `.env` via `tsx --env-file=.env`. Without it, the endpoint returns 503 and receipt scanning is disabled.
 
 ## Architecture
 
@@ -53,11 +54,11 @@ Auth model: there is none. The `hostToken` returned at session creation is stash
 - Each item's line total is split equally among **online** claimers; per-person subtotals are rounded once at the end with `Math.round`.
 - Tip is applied per-person on their rounded subtotal, then the grand-total tip line uses `Math.round(gross * tipRate)` independently — the two won't always sum to the same cent. This is intentional (per-person totals stay clean integers); don't try to "fix" it by recomputing.
 
-`parsePrice` is locale-robust (handles `1.000,50`, `1,000.50`, plain `1000`, etc.) — used for both the manual add form and the OCR receipt parser. There are dedicated tests in `tests/price.spec.ts` and `tests/parser.spec.ts` covering this; extend those when changing parsing.
+`parsePrice` is locale-robust (handles `1.000,50`, `1,000.50`, plain `1000`, etc.) — used by the manual add form and for re-parsing edits in the receipt review UI. Tested in `tests/price.spec.ts`.
 
-### Receipt OCR is client-side
+### Receipt parsing is server-side via Gemini
 
-`client/components/ScanReceipt.tsx` + `client/lib/receiptParser.ts` use `tesseract.js` (in the browser) plus heuristic line-skipping (totals, IVA, "gracias", addresses, etc.) to extract `{name, quantity, unitPriceCents}` rows. Parsed items are confirmed by the user, then sent in one `items:addMany` socket emit.
+`client/components/ScanReceipt.tsx` reads the picked image, base64-encodes it, and `POST`s `{ imageBase64, mimeType }` to `/api/receipts/parse`. The server (`server/index.ts`) calls **Gemini 2.5 Flash Lite** (`@google/genai`) with a strict JSON-only prompt and returns `{ items: [{ name, quantity, unitPriceCents }] }`. The server validates and clamps each field before responding. The user then reviews/edits lines in the modal and confirms → one `items:addMany` socket emit. If `GEMINI_API_KEY` is missing, the endpoint 503s and the UI shows an error.
 
 ### Client routing
 
@@ -79,4 +80,4 @@ Three modes (`PaymentMode`): `cash`, `host` (host's alias/link), `restaurant`. T
 
 ## Tests
 
-Playwright smoke tests in `tests/`. They drive real browsers against the running dev server and exercise multi-tab scenarios (host + guest in separate browser contexts). Pure logic (totals, parser, price) is also tested through Playwright by injecting modules — see `tests/parser.spec.ts` and `tests/price.spec.ts` for the pattern. `playwright.config.ts` runs single-worker, non-parallel because tests share a server with shared in-memory state.
+Playwright smoke tests in `tests/`. They drive real browsers against the running dev server and exercise multi-tab scenarios (host + guest in separate browser contexts). Pure logic (totals, price parsing) is also tested through Playwright by injecting modules — see `tests/price.spec.ts` for the pattern. `playwright.config.ts` runs single-worker, non-parallel because tests share a server with shared in-memory state.
